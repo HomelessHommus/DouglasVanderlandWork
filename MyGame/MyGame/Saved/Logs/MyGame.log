@@ -1152,3 +1152,67 @@ LogConfig: Set CVar [[r.VRS.ContrastAdaptiveShading:1]]
 [2025.09.25-14.35.51:064][715]LogAudioMixer: FMixerPlatformXAudio2::StartAudioStream() called. InstanceID=1
 [2025.09.25-14.35.51:064][715]LogAudioMixer: Display: Output buffers initialized: Frames=1024, Channels=2, Samples=2048, InstanceID=1
 [2025.09.25-14.35.51:066][715]LogAudioMixer: Display: Starting AudioMixerPlatformInterface::RunInternal(), InstanceID=1
+[2025.09.25-14.36.38:787][858]LogSlate: Took 0.007799 seconds to synchronously load lazily loaded font '../../../Engine/Content/Slate/Fonts/Roboto-Light.ttf' (167K)
+[2025.09.25-14.36.45:419][486]LogChaosDD: Not creating Chaos Debug Draw Scene for world World_2
+[2025.09.25-14.36.54:767][333]LogContentBrowser: Deferred new asset folder creation: NewFolder
+[2025.09.25-14.36.54:848][333]LogContentBrowser: Creating deferred item: NewFolder
+[2025.09.25-14.36.54:862][334]LogContentBrowser: Renaming the item being created (Deferred Item: NewFolder).
+[2025.09.25-14.36.59:665][817]LogContentBrowser: Attempting asset rename: NewFolder -> Levels
+[2025.09.25-14.36.59:665][817]LogContentBrowser: End creating deferred item NewFolder
+[2025.09.25-14.37.05:312][406]LogStreaming: Display: FlushAsyncLoading(394): 1 QueuedPackages, 0 AsyncPackages
+[2025.09.25-14.37.07:846][406]LogSlate: Window 'New Level' being destroyed
+[2025.09.25-14.37.07:857][406]Cmd: MAP LOAD FILE="../../../Engine/Content/Maps/Templates/Template_Default.umap" TEMPLATE=1 SHOWPROGRESS=1 FEATURELEVEL=4
+[2025.09.25-14.37.07:896][406]LogWorld: UWorld::CleanupWorld for Lvl_TopDown, bSessionEnded=true, bCleanupResources=true
+[2025.09.25-14.37.07:897][406]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2025.09.25-14.37.07:897][406]LogWorldPartition: UWorldPartition::Uninitialize : World = /Game/TopDown/Lvl_TopDown.Lvl_TopDown
+[2025.09.25-14.37.07:941][406]LogAudio: Display: Audio Device unregistered from world 'None'.
+[2025.09.25-14.37.07:997][406]LogUObjectHash: Compacting FUObjectHashTables data took   0.73ms
+[2025.09.25-14.37.08:011][406]LogAudio: Display: Audio Device (ID: 1) registered with world 'Untitled_1'.
+[2025.09.25-14.37.08:011][406]LogChaosDD: Creating Chaos Debug Draw Scene for world Untitled_1
+[2025.09.25-14.37.08:025][406]LogEditorServer: Finished looking for orphan Actors (0.000 secs)
+[2025.09.25-14.37.08:043][406]LogUObjectHash: Compacting FUObjectHashTables data took   0.88ms
+[2025.09.25-14.37.08:044][406]Cmd: MAP CHECKDEP NOCLEARLOG
+[2025.09.25-14.37.08:044][406]MapCheck: Map check complete: 0 Error(s), 0 Warning(s), took 0.247ms to complete.
+[2025.09.25-14.37.08:102][408]LogRenderer: Recreating Persistent SBTs due to initializer changes: 
+		NumShaderSlotsPerGeometrySegment changed: current: 1 - new: 2
+		NumGeometrySegments changed: current: 0 - new: 512
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: ================================================
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: === FShaderJobCache stats ===
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Total job queries 422, among them cache hits 37 (8.77%), DDC hits 319 (75.59%), Duplicates 64 (15.17%)
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Tracking 321 distinct input hashes that result in 228 distinct outputs (71.03%)
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: RAM used: 3.21 MiB of 1.60 GiB budget. Usage: 0.20%
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: === Shader Compilation stats ===
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Shaders Compiled: 2
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Jobs assigned 2, completed 2 (100%)
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Time job spent in pending queue: average 0.09 s, longest 0.09 s
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Job execution time: average 1.08 s, max 1.24 s
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Job life time (pending + execution): average 1.17 s, max 1.33
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Shader code size: total 17.176 KiB, numShaders 2, average 8.588 KiB, min 6.289 KiB, max 10.887 KiB
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Time at least one job was in flight (either pending or executed): 1.33 s
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Mutex wait stall in FShaderJobCache::SubmitJobs:  0.05%
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Jobs were issued in 2 batches (only local compilation was used), average 1.00 jobs/batch
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Average processing rate: 1.51 jobs/sec
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Total thread time: 1.374 s
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Total thread preprocess time: 8.173 s
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Percentage time preprocessing: 594.98%
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Effective parallelization: 1.03 (times faster than compiling all shaders on one thread). Compare with number of workers: 16 - 0.064671
+[2025.09.25-14.39.18:223][399]LogShaderCompilers: Display: Top 5 most expensive shader types by average time:
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display:                                TMaterialCHSFNoLightMapPolicy (compiled    1 times, average 0.88 sec, max 0.88 sec, min 0.88 sec)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display:                                 TBasePassPSFNoLightMapPolicy (compiled    1 times, average 0.49 sec, max 0.49 sec, min 0.49 sec)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display:                                      FLandscapeGrassWeightPS (compiled    0 times, average 0.00 sec, max 0.00 sec, min 0.00 sec)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display:                                                 FLumenCardVS (compiled    0 times, average 0.00 sec, max 0.00 sec, min 0.00 sec)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display:                                             FDebugViewModePS (compiled    0 times, average 0.00 sec, max 0.00 sec, min 0.00 sec)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display: Top 5 shader types by total compile time:
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display:                                TMaterialCHSFNoLightMapPolicy - 64.10% of total time (compiled    1 times, average 0.88 sec, max 0.88 sec, min 0.88 sec)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display:                                 TBasePassPSFNoLightMapPolicy - 35.90% of total time (compiled    1 times, average 0.49 sec, max 0.49 sec, min 0.49 sec)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display:                                                 FLumenCardVS - 0.00% of total time (compiled    0 times, average 0.00 sec, max 0.00 sec, min 0.00 sec)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display:                                             FDebugViewModePS - 0.00% of total time (compiled    0 times, average 0.00 sec, max 0.00 sec, min 0.00 sec)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display:                                      FLandscapeGrassWeightPS - 0.00% of total time (compiled    0 times, average 0.00 sec, max 0.00 sec, min 0.00 sec)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display: === Material stats ===
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display: Materials Cooked:        0
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display: Materials Translated:    144
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display: Material Total Translate Time: 0.08 s
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display: Material Translation Only: 0.04 s (48%)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display: Material DDC Serialization Only: 0.00 s (2%)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display: Material Cache Hits: 30 (21%)
+[2025.09.25-14.39.18:224][399]LogShaderCompilers: Display: ================================================
