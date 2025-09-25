@@ -1,0 +1,5 @@
+3100    INPUT into ACC
+3110    INPUT into mem10
+1010    ADD mem10 to ACC
+3000    OUTPUT ACC
+9900

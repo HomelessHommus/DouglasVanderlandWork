@@ -1,0 +1,3 @@
+C:/S2 2024/COMP2711/Prac 3/new prac3 starter download/cmake-build-debug/CMakeFiles/new_prac3_starter.dir
+C:/S2 2024/COMP2711/Prac 3/new prac3 starter download/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/S2 2024/COMP2711/Prac 3/new prac3 starter download/cmake-build-debug/CMakeFiles/rebuild_cache.dir

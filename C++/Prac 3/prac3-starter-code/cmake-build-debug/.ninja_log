@@ -1,0 +1,21 @@
+# ninja log v6
+25	532	7473326608117126	CMakeFiles/prac3_starter_code.dir/main.cpp.obj	f95c3a6b05fe7b29
+38	806	7473326608238977	CMakeFiles/prac3_starter_code.dir/Zelotron.cpp.obj	4fc048ad888a351
+806	1023	7473326615923286	prac3_starter_code.exe	299c6687e10f0f9b
+6	447	7473340469102340	CMakeFiles/prac3_starter_code.dir/Zelotron.cpp.obj	4fc048ad888a351
+448	543	7473340473510969	prac3_starter_code.exe	299c6687e10f0f9b
+5	423	7473343578473565	CMakeFiles/prac3_starter_code.dir/Zelotron.cpp.obj	4fc048ad888a351
+424	504	7473343582658318	prac3_starter_code.exe	299c6687e10f0f9b
+5	432	7473347714664464	CMakeFiles/prac3_starter_code.dir/Zelotron.cpp.obj	4fc048ad888a351
+436	515	7473347718962923	prac3_starter_code.exe	299c6687e10f0f9b
+15	428	7473348671990486	CMakeFiles/prac3_starter_code.dir/Zelotron.cpp.obj	4fc048ad888a351
+428	507	7473348676114259	prac3_starter_code.exe	299c6687e10f0f9b
+16	441	7473349873867315	CMakeFiles/prac3_starter_code.dir/Zelotron.cpp.obj	4fc048ad888a351
+441	522	7473349878125988	prac3_starter_code.exe	299c6687e10f0f9b
+6	443	7476536965564141	CMakeFiles/prac3_starter_code.dir/Zelotron.cpp.obj	4fc048ad888a351
+444	543	7476536969937716	prac3_starter_code.exe	299c6687e10f0f9b
+5	298	7476548057841578	CMakeFiles/prac3_starter_code.dir/main.cpp.obj	f95c3a6b05fe7b29
+12	480	7476548057901422	CMakeFiles/prac3_starter_code.dir/Zelotron.cpp.obj	4fc048ad888a351
+480	666	7476548062581977	prac3_starter_code.exe	299c6687e10f0f9b
+17	437	7476548480365662	CMakeFiles/prac3_starter_code.dir/Zelotron.cpp.obj	4fc048ad888a351
+437	515	7476548484569693	prac3_starter_code.exe	299c6687e10f0f9b

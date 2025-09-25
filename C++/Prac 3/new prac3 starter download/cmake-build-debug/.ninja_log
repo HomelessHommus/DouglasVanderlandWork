@@ -1,0 +1,17 @@
+# ninja log v6
+4	277	7476554118435709	CMakeFiles/new_prac3_starter.dir/main.cpp.obj	ba4e2627c64e2f57
+8	431	7476554118475604	CMakeFiles/new_prac3_starter.dir/Alphatron.cpp.obj	b697cdbab37cbbdb
+432	523	7476554122716848	new_prac3_starter.exe	64729c2c7853f79a
+6	330	7476555385407823	CMakeFiles/new_prac3_starter.dir/main.cpp.obj	ba4e2627c64e2f57
+7	419	7476555577473147	CMakeFiles/new_prac3_starter.dir/Alphatron.cpp.obj	b697cdbab37cbbdb
+419	495	7476555581593611	new_prac3_starter.exe	64729c2c7853f79a
+13	428	7476556744974511	CMakeFiles/new_prac3_starter.dir/Alphatron.cpp.obj	b697cdbab37cbbdb
+429	519	7476556749127222	new_prac3_starter.exe	64729c2c7853f79a
+6	416	7476557595431158	CMakeFiles/new_prac3_starter.dir/Alphatron.cpp.obj	b697cdbab37cbbdb
+416	494	7476557599529850	new_prac3_starter.exe	64729c2c7853f79a
+7	423	7476560605216609	CMakeFiles/new_prac3_starter.dir/Alphatron.cpp.obj	b697cdbab37cbbdb
+424	501	7476560609391297	new_prac3_starter.exe	64729c2c7853f79a
+7	427	7476570017170863	CMakeFiles/new_prac3_starter.dir/Alphatron.cpp.obj	b697cdbab37cbbdb
+427	513	7476570021370375	new_prac3_starter.exe	64729c2c7853f79a
+12	434	7476571874455059	CMakeFiles/new_prac3_starter.dir/Alphatron.cpp.obj	b697cdbab37cbbdb
+435	512	7476571878676028	new_prac3_starter.exe	64729c2c7853f79a

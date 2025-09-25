@@ -1,0 +1,3 @@
+C:/S2 2024/COMP2711/Prac 2/cmake-build-debug/CMakeFiles/Prac_2.dir
+C:/S2 2024/COMP2711/Prac 2/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/S2 2024/COMP2711/Prac 2/cmake-build-debug/CMakeFiles/rebuild_cache.dir
