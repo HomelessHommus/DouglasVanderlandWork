@@ -1216,3 +1216,37 @@ LogConfig: Set CVar [[r.VRS.ContrastAdaptiveShading:1]]
 [2025.09.25-14.39.18:224][399]LogShaderCompilers: Display: Material DDC Serialization Only: 0.00 s (2%)
 [2025.09.25-14.39.18:224][399]LogShaderCompilers: Display: Material Cache Hits: 30 (21%)
 [2025.09.25-14.39.18:224][399]LogShaderCompilers: Display: ================================================
+[2025.09.25-14.40.04:504][ 56]LogUObjectHash: Compacting FUObjectHashTables data took   0.77ms
+[2025.09.25-14.40.04:506][ 56]LogStreaming: Display: FlushAsyncLoading(397): 1 QueuedPackages, 0 AsyncPackages
+[2025.09.25-14.40.04:508][ 56]LogChaosDD: Creating Chaos Debug Draw Scene for world Lvl_TopDown
+[2025.09.25-14.40.04:508][ 56]LogWorldPartition: ULevel::OnLevelLoaded(Lvl_TopDown)(bIsOwningWorldGameWorld=0, bIsOwningWorldPartitioned=1, InitializeForMainWorld=1, InitializeForEditor=1, InitializeForGame=0)
+[2025.09.25-14.40.04:508][ 56]LogWorldPartition: Display: WorldPartition initialize started...
+[2025.09.25-14.40.04:508][ 56]LogWorldPartition: UWorldPartition::Initialize : World = /Game/TopDown/Lvl_TopDown.Lvl_TopDown, World Type = Inactive, IsMainWorldPartition = 1, Location = V(0), Rotation = R(0), IsEditor = 1, IsGame = 0, IsPIEWorldTravel = 0, IsCooking = 0
+[2025.09.25-14.40.04:524][ 56]LogWorldPartition: Display: WorldPartition initialize took 16.442 ms (total: 80.084 ms)
+[2025.09.25-14.40.04:527][ 56]LogAssetEditorSubsystem: Opening Asset editor for World /Game/TopDown/Lvl_TopDown.Lvl_TopDown
+[2025.09.25-14.40.04:528][ 56]Cmd: MAP LOAD FILE="../../../../../../Users/Doug/Desktop/Code/DouglasVanderlandWork/MyGame/MyGame/Content/TopDown/Lvl_TopDown.umap" TEMPLATE=0 SHOWPROGRESS=1 FEATURELEVEL=4
+[2025.09.25-14.40.04:564][ 56]LogWorld: UWorld::CleanupWorld for Untitled_1, bSessionEnded=true, bCleanupResources=true
+[2025.09.25-14.40.04:564][ 56]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2025.09.25-14.40.04:578][ 56]LogAudio: Display: Audio Device unregistered from world 'None'.
+[2025.09.25-14.40.04:580][ 56]LogUObjectHash: Compacting FUObjectHashTables data took   0.80ms
+[2025.09.25-14.40.04:582][ 56]LogWorld: UWorld::CleanupWorld for Lvl_TopDown, bSessionEnded=true, bCleanupResources=true
+[2025.09.25-14.40.04:582][ 56]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2025.09.25-14.40.04:582][ 56]LogWorldPartition: UWorldPartition::Uninitialize : World = /Game/TopDown/Lvl_TopDown.Lvl_TopDown
+[2025.09.25-14.40.04:599][ 56]LogUObjectHash: Compacting FUObjectHashTables data took   0.57ms
+[2025.09.25-14.40.04:668][ 56]LogUObjectHash: Compacting FUObjectHashTables data took   0.55ms
+[2025.09.25-14.40.04:670][ 56]LogAudio: Display: Audio Device (ID: 1) registered with world 'Lvl_TopDown'.
+[2025.09.25-14.40.04:670][ 56]LogChaosDD: Creating Chaos Debug Draw Scene for world Lvl_TopDown
+[2025.09.25-14.40.04:672][ 56]LogWorldPartition: ULevel::OnLevelLoaded(Lvl_TopDown)(bIsOwningWorldGameWorld=0, bIsOwningWorldPartitioned=1, InitializeForMainWorld=1, InitializeForEditor=1, InitializeForGame=0)
+[2025.09.25-14.40.04:672][ 56]LogWorldPartition: Display: WorldPartition initialize started...
+[2025.09.25-14.40.04:672][ 56]LogWorldPartition: UWorldPartition::Initialize : World = /Game/TopDown/Lvl_TopDown.Lvl_TopDown, World Type = Editor, IsMainWorldPartition = 1, Location = V(0), Rotation = R(0), IsEditor = 1, IsGame = 0, IsPIEWorldTravel = 0, IsCooking = 0
+[2025.09.25-14.40.04:686][ 56]LogWorldPartition: Display: WorldPartition initialize took 14.698 ms (total: 94.782 ms)
+[2025.09.25-14.40.04:703][ 56]LogEditorServer: Finished looking for orphan Actors (0.000 secs)
+[2025.09.25-14.40.04:719][ 56]LogUObjectHash: Compacting FUObjectHashTables data took   0.55ms
+[2025.09.25-14.40.04:736][ 56]Cmd: MAP CHECKDEP NOCLEARLOG
+[2025.09.25-14.40.04:737][ 56]MapCheck: Map check complete: 0 Error(s), 0 Warning(s), took 0.541ms to complete.
+[2025.09.25-14.40.04:862][ 58]LogRenderer: Recreating Persistent SBTs due to initializer changes: 
+		NumShaderSlotsPerGeometrySegment changed: current: 1 - new: 2
+		NumGeometrySegments changed: current: 0 - new: 512
+[2025.09.25-14.40.55:266][481]LogEOSSDK: LogEOS: Updating Product SDK Config, Time: 640.880676
+[2025.09.25-14.40.56:265][484]LogEOSSDK: LogEOS: SDK Config Product Update Request Completed - No Change
+[2025.09.25-14.40.56:265][484]LogEOSSDK: LogEOS: ScheduleNextSDKConfigDataUpdate - Time: 641.547607, Update Interval: 327.133392
