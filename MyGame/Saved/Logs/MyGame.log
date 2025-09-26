@@ -1140,3 +1140,52 @@ LogConfig: Set CVar [[r.VRS.ContrastAdaptiveShading:1]]
 [2025.09.26-00.57.36:914][932]LogDerivedDataCache: C:/Users/Doug/AppData/Local/UnrealEngine/Common/DerivedDataCache: Maintenance finished in +00:00:00.000 and deleted 0 files with total size 0 MiB and 0 empty folders. Scanned 0 files in 1 folders with total size 0 MiB.
 [2025.09.26-00.58.02:183][ 14]LogChaosDD: Not creating Chaos Debug Draw Scene for world World_0
 [2025.09.26-00.58.02:311][ 15]LogChaosDD: Not creating Chaos Debug Draw Scene for world World_1
+[2025.09.26-00.58.29:180][531]LogSlate: Took 0.006758 seconds to synchronously load lazily loaded font '../../../Engine/Content/Slate/Fonts/Roboto-Light.ttf' (167K)
+[2025.09.26-00.58.36:474][259]LogStreaming: Display: FlushAsyncLoading(394): 1 QueuedPackages, 0 AsyncPackages
+[2025.09.26-00.58.38:329][259]LogSlate: Window 'New Level' being destroyed
+[2025.09.26-00.58.38:337][259]Cmd: MAP LOAD FILE="../../../Engine/Content/Maps/Templates/Template_Default.umap" TEMPLATE=1 SHOWPROGRESS=1 FEATURELEVEL=4
+[2025.09.26-00.58.38:374][259]LogWorld: UWorld::CleanupWorld for Lvl_TopDown, bSessionEnded=true, bCleanupResources=true
+[2025.09.26-00.58.38:374][259]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2025.09.26-00.58.38:374][259]LogWorldPartition: UWorldPartition::Uninitialize : World = /Game/TopDown/Lvl_TopDown.Lvl_TopDown
+[2025.09.26-00.58.38:409][259]LogAudio: Display: Audio Device unregistered from world 'None'.
+[2025.09.26-00.58.38:458][259]LogUObjectHash: Compacting FUObjectHashTables data took   0.60ms
+[2025.09.26-00.58.38:470][259]LogAudio: Display: Audio Device (ID: 1) registered with world 'Untitled_1'.
+[2025.09.26-00.58.38:470][259]LogChaosDD: Creating Chaos Debug Draw Scene for world Untitled_1
+[2025.09.26-00.58.38:483][259]LogEditorServer: Finished looking for orphan Actors (0.000 secs)
+[2025.09.26-00.58.38:500][259]LogUObjectHash: Compacting FUObjectHashTables data took   0.58ms
+[2025.09.26-00.58.38:501][259]Cmd: MAP CHECKDEP NOCLEARLOG
+[2025.09.26-00.58.38:501][259]MapCheck: Map check complete: 0 Error(s), 0 Warning(s), took 0.169ms to complete.
+[2025.09.26-00.58.38:554][260]LogRenderer: Recreating Persistent SBTs due to initializer changes: 
+		NumShaderSlotsPerGeometrySegment changed: current: 1 - new: 2
+		NumGeometrySegments changed: current: 0 - new: 512
+[2025.09.26-00.58.48:858][614]LogSlate: Window 'Save Level As' being destroyed
+[2025.09.26-00.58.48:910][614]Cmd: OBJ SAVEPACKAGE PACKAGE="/Game/TopDown/MainMap" FILE="../../../../../../Users/Doug/Desktop/Code/DouglasVanderlandWork/MyGame/Content/TopDown/MainMap.umap" SILENT=true AUTOSAVING=false KEEPDIRTY=false
+[2025.09.26-00.58.48:962][614]LogUObjectHash: Compacting FUObjectHashTables data took   0.56ms
+[2025.09.26-00.58.48:979][614]LogSavePackage: Moving output files for package: /Game/TopDown/MainMap
+[2025.09.26-00.58.48:979][614]LogSavePackage: Moving '../../../../../../Users/Doug/Desktop/Code/DouglasVanderlandWork/MyGame/Saved/MainMapC5DC7C924AC9B4E0A8BB78BAFB770BA6.tmp' to '../../../../../../Users/Doug/Desktop/Code/DouglasVanderlandWork/MyGame/Content/TopDown/MainMap.umap'
+[2025.09.26-00.58.49:011][614]LogFileHelpers: Saving map 'MainMap' took 0.144
+[2025.09.26-00.58.49:011][614]Cmd: MAP LOAD FILE="../../../../../../Users/Doug/Desktop/Code/DouglasVanderlandWork/MyGame/Content/TopDown/MainMap.umap" TEMPLATE=0 SHOWPROGRESS=1 FEATURELEVEL=4
+[2025.09.26-00.58.49:044][614]LogWorld: UWorld::CleanupWorld for MainMap, bSessionEnded=true, bCleanupResources=true
+[2025.09.26-00.58.49:045][614]LogSlate: InvalidateAllWidgets triggered.  All widgets were invalidated
+[2025.09.26-00.58.49:059][614]LogAudio: Display: Audio Device unregistered from world 'None'.
+[2025.09.26-00.58.49:060][614]LogUObjectHash: Compacting FUObjectHashTables data took   0.58ms
+[2025.09.26-00.58.49:061][614]LogStreaming: Display: FlushAsyncLoading(397): 1 QueuedPackages, 0 AsyncPackages
+[2025.09.26-00.58.49:063][614]LogAudio: Display: Audio Device (ID: 1) registered with world 'MainMap'.
+[2025.09.26-00.58.49:063][614]LogChaosDD: Creating Chaos Debug Draw Scene for world MainMap
+[2025.09.26-00.58.49:075][614]LogEditorServer: Finished looking for orphan Actors (0.000 secs)
+[2025.09.26-00.58.49:091][614]LogUObjectHash: Compacting FUObjectHashTables data took   0.56ms
+[2025.09.26-00.58.49:106][614]Cmd: MAP CHECKDEP NOCLEARLOG
+[2025.09.26-00.58.49:106][614]MapCheck: Map check complete: 0 Error(s), 0 Warning(s), took 0.052ms to complete.
+[2025.09.26-00.58.49:153][614]LogContentValidation: Display: Starting to validate 1 assets
+[2025.09.26-00.58.49:153][614]LogContentValidation: Enabled validators:
+[2025.09.26-00.58.49:153][614]LogContentValidation: 	/Script/DataValidation.EditorValidator_Material
+[2025.09.26-00.58.49:153][614]LogContentValidation: 	/Script/DataValidation.DirtyFilesChangelistValidator
+[2025.09.26-00.58.49:153][614]LogContentValidation: 	/Script/DataValidation.EditorValidator_Localization
+[2025.09.26-00.58.49:153][614]LogContentValidation: 	/Script/DataValidation.PackageFileValidator
+[2025.09.26-00.58.49:153][614]LogContentValidation: 	/Script/DataValidation.WorldPartitionChangelistValidator
+[2025.09.26-00.58.49:153][614]LogContentValidation: 	/Script/InputBlueprintNodes.EnhancedInputUserWidgetValidator
+[2025.09.26-00.58.49:153][614]AssetCheck: /Game/TopDown/MainMap Validating asset
+[2025.09.26-00.58.49:175][614]LogSourceControl: Display: Uncontrolled Changelist persistency file saved ../../../../../../Users/Doug/Desktop/Code/DouglasVanderlandWork/MyGame/Saved/SourceControl/UncontrolledChangelists.json
+[2025.09.26-00.58.49:201][615]LogRenderer: Recreating Persistent SBTs due to initializer changes: 
+		NumShaderSlotsPerGeometrySegment changed: current: 1 - new: 2
+		NumGeometrySegments changed: current: 0 - new: 512
