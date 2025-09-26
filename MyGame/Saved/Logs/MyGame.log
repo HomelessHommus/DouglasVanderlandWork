@@ -1138,3 +1138,5 @@ LogConfig: Set CVar [[r.VRS.ContrastAdaptiveShading:1]]
 [2025.09.26-00.55.49:839][ 12]LogEOSSDK: LogEOS: SDK Config Data - Watermark: 1542370262
 [2025.09.26-00.55.49:839][ 12]LogEOSSDK: LogEOS: ScheduleNextSDKConfigDataUpdate - Time: 7.412776, Update Interval: 355.354462
 [2025.09.26-00.57.36:914][932]LogDerivedDataCache: C:/Users/Doug/AppData/Local/UnrealEngine/Common/DerivedDataCache: Maintenance finished in +00:00:00.000 and deleted 0 files with total size 0 MiB and 0 empty folders. Scanned 0 files in 1 folders with total size 0 MiB.
+[2025.09.26-00.58.02:183][ 14]LogChaosDD: Not creating Chaos Debug Draw Scene for world World_0
+[2025.09.26-00.58.02:311][ 15]LogChaosDD: Not creating Chaos Debug Draw Scene for world World_1
