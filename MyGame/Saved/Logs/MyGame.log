@@ -1189,3 +1189,29 @@ LogConfig: Set CVar [[r.VRS.ContrastAdaptiveShading:1]]
 [2025.09.26-00.58.49:201][615]LogRenderer: Recreating Persistent SBTs due to initializer changes: 
 		NumShaderSlotsPerGeometrySegment changed: current: 1 - new: 2
 		NumGeometrySegments changed: current: 0 - new: 512
+[2025.09.26-01.00.05:041][311]LogActorFactory: Actor Factory attempting to spawn Class /Script/Engine.Character
+[2025.09.26-01.00.05:041][311]LogActorFactory: Actor Factory attempting to spawn Class /Script/Engine.Character
+[2025.09.26-01.00.05:041][311]LogActorFactory: Actor Factory spawned Class /Script/Engine.Character as actor: Character /Game/TopDown/MainMap.MainMap:PersistentLevel.Character_0
+[2025.09.26-01.00.05:043][311]LogActorFactory: Actor Factory spawned Class /Script/Engine.Character as actor: Character /Game/TopDown/MainMap.MainMap:PersistentLevel.Character_0
+[2025.09.26-01.00.05:744][364]LogUObjectHash: Compacting FUObjectHashTables data took   0.42ms
+[2025.09.26-01.00.05:745][364]LogEditorActor: Deleted 0 Actors (0.016 secs)
+[2025.09.26-01.00.05:752][364]LogActorFactory: Actor Factory attempting to spawn Class /Script/Engine.Character
+[2025.09.26-01.00.05:752][364]LogActorFactory: Actor Factory attempting to spawn Class /Script/Engine.Character
+[2025.09.26-01.00.05:754][364]LogActorFactory: Actor Factory spawned Class /Script/Engine.Character as actor: Character /Game/TopDown/MainMap.MainMap:PersistentLevel.Character_1
+[2025.09.26-01.00.05:754][364]LogActorFactory: Actor Factory spawned Class /Script/Engine.Character as actor: Character /Game/TopDown/MainMap.MainMap:PersistentLevel.Character_1
+[2025.09.26-01.00.07:457][531]LogFileHelpers: InternalPromptForCheckoutAndSave started...
+[2025.09.26-01.00.07:495][531]Cmd: OBJ SAVEPACKAGE PACKAGE="/Game/TopDown/MainMap" FILE="../../../../../../Users/Doug/Desktop/Code/DouglasVanderlandWork/MyGame/Content/TopDown/MainMap.umap" SILENT=true AUTOSAVING=false KEEPDIRTY=false
+[2025.09.26-01.00.07:544][531]LogUObjectHash: Compacting FUObjectHashTables data took   0.31ms
+[2025.09.26-01.00.07:561][531]LogSavePackage: Moving output files for package: /Game/TopDown/MainMap
+[2025.09.26-01.00.07:565][531]LogSavePackage: Moving '../../../../../../Users/Doug/Desktop/Code/DouglasVanderlandWork/MyGame/Saved/MainMap6B7ACA3F400E771777462B8A32513C62.tmp' to '../../../../../../Users/Doug/Desktop/Code/DouglasVanderlandWork/MyGame/Content/TopDown/MainMap.umap'
+[2025.09.26-01.00.07:592][531]LogFileHelpers: Saving map 'MainMap' took 0.097
+[2025.09.26-01.00.07:600][531]LogFileHelpers: InternalPromptForCheckoutAndSave took 143.412 ms
+[2025.09.26-01.00.07:644][531]LogContentValidation: Display: Starting to validate 1 assets
+[2025.09.26-01.00.07:644][531]LogContentValidation: Enabled validators:
+[2025.09.26-01.00.07:644][531]LogContentValidation: 	/Script/DataValidation.EditorValidator_Material
+[2025.09.26-01.00.07:644][531]LogContentValidation: 	/Script/DataValidation.DirtyFilesChangelistValidator
+[2025.09.26-01.00.07:644][531]LogContentValidation: 	/Script/DataValidation.EditorValidator_Localization
+[2025.09.26-01.00.07:644][531]LogContentValidation: 	/Script/DataValidation.PackageFileValidator
+[2025.09.26-01.00.07:644][531]LogContentValidation: 	/Script/DataValidation.WorldPartitionChangelistValidator
+[2025.09.26-01.00.07:644][531]LogContentValidation: 	/Script/InputBlueprintNodes.EnhancedInputUserWidgetValidator
+[2025.09.26-01.00.07:644][531]AssetCheck: /Game/TopDown/MainMap Validating asset

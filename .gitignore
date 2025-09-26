@@ -80,3 +80,5 @@ Platforms/HoloLens/Config/HoloLensEngine.ini
 *.log
 *.ini
 *.json
+/MyGame/Saved/Config
+/MyGame/Saved
