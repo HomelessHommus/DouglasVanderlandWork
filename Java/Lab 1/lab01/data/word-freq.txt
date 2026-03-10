@@ -12,7 +12,7 @@
 12 is 282222 
 13 in 266544 
 14 this 249860 
-15 know 241548 
+15 know 241548
 16 I'm 230304 
 17 for 216535 
 18 no 212463 
@@ -1891,7 +1891,7 @@
 1891 appointment 971 
 1892 social 968 
 1893 nature 968 
-1894 ú 967 
+1894 ï¿½ 967 
 1895 deserves 965 
 1896 west 961 
 1897 blake 961 
@@ -4826,7 +4826,7 @@
 4826 kiddo 249 
 4827 healing 249 
 4828 franklin 249 
-4829 fiancée 249 
+4829 fiancï¿½e 249 
 4830 derek 249 
 4831 cascade 249 
 4832 capeside 249 
@@ -5160,7 +5160,7 @@
 5160 jeremy 226 
 5161 guessed 226 
 5162 grace's 226 
-5163 fiancé 226 
+5163 fiancï¿½ 226 
 5164 display 226 
 5165 dip 226 
 5166 brooke's 226 
@@ -6337,7 +6337,7 @@
 6337 butler 164 
 6338 bold 164 
 6339 ballet 164 
-6340 ñ 163 
+6340 ï¿½ 163 
 6341 whatcha 163 
 6342 unlikely 163 
 6343 spiritual 163 
