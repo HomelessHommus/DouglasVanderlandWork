@@ -105,8 +105,32 @@ public class Dictionary {
      * @return List of words not found in this <code>Dictionary</code>.
      */
     public List<String> spellCheck(String fileName) {
-        System.out.println("Checkpoint 4: spellCheck() not implemented yet");
-        return null;
+
+        Scanner fileScanner;
+        ArrayList<String> notInDictionary = new ArrayList<String>();
+
+        try {
+            fileScanner = new Scanner(new FileInputStream("data" + File.separator +fileName));
+
+            while (fileScanner.hasNextLine()) {
+                String nextLine = fileScanner.nextLine();
+
+                if(!nextLine.isEmpty()) {
+                    String[] input = nextLine.split("\\s+");
+                    for (int i = 0; i < input.length; i++) {
+                        if (!dictionaryMap.containsKey(input[i].toLowerCase())) {
+                            notInDictionary.add(input[i]);
+                        }
+                    }
+                }
+            }
+
+        } catch (FileNotFoundException ex) {
+            System.out.println("could not find the file " +fileName+ "in the data directory!");
+            return null;
+        }
+
+        return notInDictionary;
     }
 
     /**
