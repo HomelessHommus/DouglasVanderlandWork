@@ -7,11 +7,10 @@ import java.util.*;
  * @author lewi0146
  */
 public class Dictionary {
-
-    private Map<String, DictionaryData> dictionaryMap = null;
+    HashMap<String, DictionaryData> dictionaryMap = null;
 
     public Dictionary() {
-        dictionaryMap = null;
+         dictionaryMap = new HashMap<>();
     }
 
     /**
@@ -21,7 +20,9 @@ public class Dictionary {
      * @param data the data about the word s
      */
     public void insert(String word, DictionaryData data) {
-        System.out.println("insert() not implemented yet");
+
+        dictionaryMap.put(word.toLowerCase(), data);
+
     }
 
     /**
@@ -30,7 +31,9 @@ public class Dictionary {
      * @return
      */
     public DictionaryData remove(String word) {
-        System.out.println("remove() not implemented yet");
+        word = word.toLowerCase();
+        dictionaryMap.remove(word);
+
         return null;
     }
 
@@ -41,7 +44,9 @@ public class Dictionary {
      * @return the data associated with the word identified by <code>word</code>.
      */
     public DictionaryData lookup(String word) {
-        return null;
+
+        word = word.toLowerCase();
+        return dictionaryMap.get(word);
     }
 
     /**
@@ -51,7 +56,9 @@ public class Dictionary {
      */
     public boolean contains(String word) {
 
-        return false;
+        word = word.toLowerCase();
+        return dictionaryMap.containsKey(word);
+
     }
 
     /**
@@ -76,8 +83,10 @@ public class Dictionary {
 
             while (fileScanner.hasNextLine()) {
                 String nextLine = fileScanner.nextLine();
-                // System.out.println("nextLine: " + nextLine); uncomment if you want to see what is read in
+//                System.out.println("nextLine: " + nextLine);
                 DictionaryData data = new DictionaryData(nextLine);
+
+                d.insert(data.getWord(), data);
 
                 // TODO: call insert() here to insert the data object into the dictionary!
             }
