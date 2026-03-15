@@ -6,6 +6,8 @@ import java.util.*;
  *
  * @author lewi0146
  */
+
+
 public class Dictionary {
     HashMap<String, DictionaryData> dictionaryMap = null;
 
@@ -138,8 +140,11 @@ public class Dictionary {
      * @return the list of alphabetical sorted dictionary words.
      */
     public List<DictionaryData> alphabeticalList() {
-        System.out.println("Checkpoint 5: alphabeticalList() not implemented yet");
-        return null;
+
+        List<DictionaryData> alphaList = new ArrayList<>(dictionaryMap.values());
+        alphaList.sort(Comparator.comparing(DictionaryData::getWord));
+
+        return alphaList;
     }
 
     /**
@@ -149,8 +154,12 @@ public class Dictionary {
      * @return the list of frequency sorted dictionary words.
      */
     public List<DictionaryData> frequencyOrderedList() {
-        System.out.println("Checkpoint 6: frequencyOrderedList() not implemented yet");
-        return null;
+        List<DictionaryData> freqList = new ArrayList<>(dictionaryMap.values());
+
+        freqList.sort(Comparator.comparingInt(DictionaryData::getFrequency).
+                thenComparing(DictionaryData::getWord, Comparator.reverseOrder()));
+
+        return freqList;
     }
 
 }

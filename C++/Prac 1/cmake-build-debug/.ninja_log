@@ -1,0 +1,5 @@
+# ninja log v6
+12	422	7440994717350743	CMakeFiles/Prac_1.dir/numbers.cpp.obj	2a6e81be3b19671b
+3	380	7440251457337624	CMakeFiles/Prac_1.dir/main.cpp.obj	749304dc00cb4122
+2	398	7440997796085549	build.ninja	b2f4b5c3a2d4006f
+28	109	7440997796953235	Prac_1.exe	cc94b83cfa01e8da

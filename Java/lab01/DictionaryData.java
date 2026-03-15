@@ -7,18 +7,18 @@ public class DictionaryData {
 
     String ranking;
     String word;
-    String frequency;
+    int frequency;
 
-    public String getFrequency() {
+    public int getFrequency() {
         return frequency;
     }
 
-    public void setFrequency(String frequency) {
+    public void setFrequency(int frequency) {
         this.frequency = frequency;
     }
 
     public String getWord() {
-        return word;
+        return word.toLowerCase();
     }
 
     public void setWord(String word) {
@@ -34,7 +34,7 @@ public class DictionaryData {
     }
 
     /**
-     * Creates a new DictionaryData object based upon the the String line that
+     * Creates a new DictionaryData object based upon the String line that
      * contains the data about the new data item.
      *
      * @param line the data about the new data item
@@ -44,7 +44,7 @@ public class DictionaryData {
         String[] input = line.split(" ");
         ranking = input[0];
         word = input[1];
-        frequency = input[2];
+        frequency = Integer.parseInt(input[2]);
     }
 
     /**
