@@ -78,10 +78,10 @@ public class GraphDriver {
             String graphType = input[1];
             switch (graphType) {
                 case "U":
-                    g = null; // your new Adjacency List Undirected Graph
+                    g = new Undirected(); // your new Adjacency List Undirected Graph
                     break;
                 case "D":
-                    g = null; // your new Adjacency List Directed Graph
+                    g = new Directed(); // your new Adjacency List Directed Graph
                     break;
 
             }
@@ -100,7 +100,7 @@ public class GraphDriver {
                 test2(g, startFrom); // breadth first search
                 break;
             case 3:
-                test3(g, startFrom); // depth first seach
+                test3(g, startFrom); // depth first search
                 break;
             case 4:
                 String printGraph = (input.length > 1) ? input[1] : "N";

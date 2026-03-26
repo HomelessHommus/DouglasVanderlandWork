@@ -167,6 +167,4 @@ public abstract class Graph {
      */
     abstract Vertex getVertex(String v);
 
-
-
 }
