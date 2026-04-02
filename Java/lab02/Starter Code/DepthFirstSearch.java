@@ -5,11 +5,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Stack;
 
-/**
- *
- * @author lewi0146
- */
-public class BreadthFirstSearch {
+public class DepthFirstSearch {
 
     /**
      * Maintain the previous Vertex for each Vertex to discover paths through the graph.
@@ -26,61 +22,42 @@ public class BreadthFirstSearch {
      */
     List<Vertex> traversalOrder;
 
-    public BreadthFirstSearch(Graph g, Vertex source)
-    {
+    public DepthFirstSearch(Graph g, Vertex source) {
         prev = new HashMap<>();
         dist = new HashMap<>();
         traversalOrder = new LinkedList<>();
         List<Vertex> vs = g.getVertices();
+
         for (Vertex v : vs) {
             if (v.equals(source)) {
                 source = v;
             }
             g.clearState();
             g.setState(v, Vertex.VertexState.UNVISITED);
-
         }
 
-        bfs(source, g);
+        dfs(source, g);
     }
 
-    private void bfs(Vertex v, Graph g) {
+    private void dfs(Vertex v, Graph g) {
+        g.setState(v, Vertex.VertexState.DISCOVERED);
+        traversalOrder.add(v);
+        List<Vertex> neighbours = g.adjacentTo(v);
 
-        Queue<Vertex> q = new LinkedList<>();
+        if (neighbours != null) {
+            for (Vertex next : neighbours) {
+                if (g.getState(next) == Vertex.VertexState.UNVISITED) {
 
-
-        q.offer(v);
-        dist.put(v, 0);
-
-        while (!q.isEmpty()) {
-
-            Vertex v2 = q.poll();
-            g.setState(v2, Vertex.VertexState.DISCOVERED);
-
-            List<Vertex> vs = g.adjacentTo(v2);
-            if (vs != null) {
-                for (Vertex child : vs) {
-
-                    if (g.getState(child) == Vertex.VertexState.UNVISITED) {
-                        g.setState(child, Vertex.VertexState.DISCOVERED);
-                        q.offer(child);
-                        // distance is the distance so far (dist.get(v2)) plus 1
-                        dist.put(child, 1 + dist.get(v2));
-                        prev.put(child, v2);
-                    }
+                    prev.put(next, v);
+                    dist.put(next, dist.get(v) + 1);
+                    dfs(next, g);
                 }
-
             }
-            g.setState(v2, Vertex.VertexState.FINISHED);
-
-            // add to the
-            traversalOrder.add(v2);
-
         }
-
+        g.setState(v, Vertex.VertexState.FINISHED);
     }
 
-    public List<Vertex> getBreadFirstTraversalList()
+    public List<Vertex> getDepthFirstTraversalList()
     {
         return traversalOrder;
     }

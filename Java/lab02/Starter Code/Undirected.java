@@ -58,6 +58,12 @@ public class Undirected extends Graph{
 
     @Override
     Vertex getVertex(String v) {
+        for (Vertex vertex : UndirList.keySet()) {
+            if (vertex.getLabel().equals(v)) {
+                return vertex;
+            }
+        }
+
         return null;
     }
 }
