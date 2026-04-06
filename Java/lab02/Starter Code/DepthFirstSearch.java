@@ -40,9 +40,10 @@ public class DepthFirstSearch {
     }
 
     private void dfs(Vertex v, Graph g) {
+
         g.setState(v, Vertex.VertexState.DISCOVERED);
-        traversalOrder.add(v);
         List<Vertex> neighbours = g.adjacentTo(v);
+        dist.put(v, 0);
 
         if (neighbours != null) {
             for (Vertex next : neighbours) {
@@ -55,6 +56,7 @@ public class DepthFirstSearch {
             }
         }
         g.setState(v, Vertex.VertexState.FINISHED);
+        traversalOrder.add(v);
     }
 
     public List<Vertex> getDepthFirstTraversalList()

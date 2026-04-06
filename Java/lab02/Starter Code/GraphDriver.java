@@ -232,10 +232,10 @@ public class GraphDriver {
         printGraph(g);
 
         System.out.println("Depth First");
-        List<Vertex> ld = null;
+        DepthFirstSearch dfs = new DepthFirstSearch(g, g.getVertex(startFrom));
+        List<Vertex> ld = dfs.getDepthFirstTraversalList();
         // this list is from your post-order Depth First Traversal starting
         // at startFrom (defaults to "a");
-        ld = null;
         System.out.println(ld);
 
     }
