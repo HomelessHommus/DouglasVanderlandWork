@@ -236,6 +236,7 @@ public class GraphDriver {
         List<Vertex> ld = dfs.getDepthFirstTraversalList();
         // this list is from your post-order Depth First Traversal starting
         // at startFrom (defaults to "a");
+        System.out.println("starting from: " + startFrom);
         System.out.println(ld);
 
     }
