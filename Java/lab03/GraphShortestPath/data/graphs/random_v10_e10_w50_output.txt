@@ -1,0 +1,10 @@
+shortest path to 0: 0: cost = 0
+shortest path to 1: NO PATH
+shortest path to 2: 0 2: cost = 49
+shortest path to 3: 0 5 7 3: cost = 75
+shortest path to 4: 0 2 4: cost = 93
+shortest path to 5: 0 5: cost = 25
+shortest path to 6: 0 5 6: cost = 29
+shortest path to 7: 0 5 7: cost = 50
+shortest path to 8: NO PATH
+shortest path to 9: NO PATH

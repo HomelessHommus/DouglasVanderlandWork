@@ -173,11 +173,11 @@ public class GraphDriver {
     }
 
     public static void bacon() {
-        String castFile = "data/cast.rated.txt";
+        String castFile = "M:\\Github Repos\\DouglasVanderlandWork\\Java\\lab02\\Starter Code\\data\\cast.rated.txt";
         try {
             Scanner fs = new Scanner(new FileInputStream(castFile));
 
-            Graph g = null; // you new Adjacency List Undirected Graph();
+            Graph g = new Undirected(); // you new Adjacency List Undirected Graph();
 
             System.out.println("reading in file: " + castFile);
             while (fs.hasNext()) {

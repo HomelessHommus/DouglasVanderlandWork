@@ -1,0 +1,100 @@
+shortest path to 0: 0: cost = 0
+shortest path to 1: NO PATH
+shortest path to 2: NO PATH
+shortest path to 3: NO PATH
+shortest path to 4: NO PATH
+shortest path to 5: NO PATH
+shortest path to 6: NO PATH
+shortest path to 7: 0 7: cost = 26
+shortest path to 8: NO PATH
+shortest path to 9: NO PATH
+shortest path to 10: NO PATH
+shortest path to 11: NO PATH
+shortest path to 12: 0 7 12: cost = 70
+shortest path to 13: NO PATH
+shortest path to 14: NO PATH
+shortest path to 15: NO PATH
+shortest path to 16: 0 7 16: cost = 55
+shortest path to 17: NO PATH
+shortest path to 18: NO PATH
+shortest path to 19: NO PATH
+shortest path to 20: NO PATH
+shortest path to 21: NO PATH
+shortest path to 22: NO PATH
+shortest path to 23: NO PATH
+shortest path to 24: NO PATH
+shortest path to 25: NO PATH
+shortest path to 26: NO PATH
+shortest path to 27: NO PATH
+shortest path to 28: NO PATH
+shortest path to 29: NO PATH
+shortest path to 30: NO PATH
+shortest path to 31: 0 7 57 52 31: cost = 115
+shortest path to 32: NO PATH
+shortest path to 33: NO PATH
+shortest path to 34: NO PATH
+shortest path to 35: NO PATH
+shortest path to 36: NO PATH
+shortest path to 37: NO PATH
+shortest path to 38: NO PATH
+shortest path to 39: NO PATH
+shortest path to 40: NO PATH
+shortest path to 41: NO PATH
+shortest path to 42: 0 7 57 52 31 99 98 42: cost = 175
+shortest path to 43: NO PATH
+shortest path to 44: NO PATH
+shortest path to 45: NO PATH
+shortest path to 46: NO PATH
+shortest path to 47: NO PATH
+shortest path to 48: NO PATH
+shortest path to 49: NO PATH
+shortest path to 50: 0 7 50: cost = 67
+shortest path to 51: NO PATH
+shortest path to 52: 0 7 57 52: cost = 65
+shortest path to 53: NO PATH
+shortest path to 54: 0 7 12 54: cost = 90
+shortest path to 55: NO PATH
+shortest path to 56: NO PATH
+shortest path to 57: 0 7 57: cost = 30
+shortest path to 58: NO PATH
+shortest path to 59: NO PATH
+shortest path to 60: NO PATH
+shortest path to 61: NO PATH
+shortest path to 62: NO PATH
+shortest path to 63: NO PATH
+shortest path to 64: NO PATH
+shortest path to 65: NO PATH
+shortest path to 66: NO PATH
+shortest path to 67: 0 7 67: cost = 34
+shortest path to 68: 0 7 12 54 68: cost = 129
+shortest path to 69: NO PATH
+shortest path to 70: NO PATH
+shortest path to 71: NO PATH
+shortest path to 72: NO PATH
+shortest path to 73: NO PATH
+shortest path to 74: NO PATH
+shortest path to 75: NO PATH
+shortest path to 76: NO PATH
+shortest path to 77: NO PATH
+shortest path to 78: NO PATH
+shortest path to 79: NO PATH
+shortest path to 80: NO PATH
+shortest path to 81: NO PATH
+shortest path to 82: 0 7 57 52 31 99 98 42 82: cost = 218
+shortest path to 83: NO PATH
+shortest path to 84: NO PATH
+shortest path to 85: NO PATH
+shortest path to 86: NO PATH
+shortest path to 87: NO PATH
+shortest path to 88: NO PATH
+shortest path to 89: NO PATH
+shortest path to 90: NO PATH
+shortest path to 91: NO PATH
+shortest path to 92: NO PATH
+shortest path to 93: NO PATH
+shortest path to 94: NO PATH
+shortest path to 95: NO PATH
+shortest path to 96: NO PATH
+shortest path to 97: NO PATH
+shortest path to 98: 0 7 57 52 31 99 98: cost = 159
+shortest path to 99: 0 7 57 52 31 99: cost = 123
