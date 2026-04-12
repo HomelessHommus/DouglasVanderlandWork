@@ -17,8 +17,7 @@ import org.jdom2.input.SAXBuilder;
  */
 public class GraphBuilder {
 
-
-
+    public static HashMap<Integer, List<Edge>> mainMap = new HashMap<>();
 
     public static Graph buildFromGraphML(String file) throws JDOMException, IOException {
 
@@ -47,7 +46,7 @@ public class GraphBuilder {
         List<Element> edges = graph.getChildren("edge", ns);
 
         System.out.println("number of edges: " + edges.size());
-        HashMap<Integer, List<Edge>> mainMap = new HashMap<>();
+
         int max = 0;
         int min = 10000;
         for (Element e : edges) {
@@ -69,9 +68,8 @@ public class GraphBuilder {
         }
         // System.out.println("max weight: "+max);
         // System.out.println("min weight: "+min);
-        for (int key : mainMap.keySet()) {
-            System.out.println(key + ": " + mainMap.get(key));
-        }
+        MyGraph myGraph = new MyGraph();
+        myGraph.printGraph();
         return null;
     }
 

@@ -27,7 +27,7 @@ public class GraphShortestPathDriver {
 
         //String filename = "data/graphs/graphSpecExample.graphml";
         //String filename = "data/graphs/graphTutorialExample.graphml";
-        String filename = "GraphShortestPath/data/graphs/graph1000.graphml";
+        String filename = "GraphShortestPath/data/graphs/graph10.graphml";
 
         int sourceVertex = 0;
         boolean printInfo = false;
