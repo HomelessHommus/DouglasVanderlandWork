@@ -1,6 +1,5 @@
 public class Edge {
 
-
     int destination;
     int weight;
 

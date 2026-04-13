@@ -19,7 +19,7 @@ public class GraphBuilder {
 
     public static HashMap<Integer, List<Edge>> mainMap = new HashMap<>();
 
-    public static Graph buildFromGraphML(String file) throws JDOMException, IOException {
+    public static Graph buildFromGraphML(String file, int sourceVertex) throws JDOMException, IOException {
 
         int nNodes = 0;
         // the SAXBuilder is the easiest way to create the JDOM2 objects.
@@ -29,23 +29,23 @@ public class GraphBuilder {
         Document jdomDocument = jdomBuilder.build(file);
 
         // The root element is the root of the document. we print its name
-        System.out.println(jdomDocument.getRootElement().getName());
+//        System.out.println(jdomDocument.getRootElement().getName());
 
         Element graphxml = jdomDocument.getRootElement();
 
         Namespace ns = graphxml.getNamespace(); // Namespace.getNamespace("http://foo.com");
 
         Element graph = graphxml.getChild("graph", ns);
-        System.out.println(graph.getName() + ": " + graph.getChildren().size());
+//        System.out.println(graph.getName() + ": " + graph.getChildren().size());
 
         List<Element> nodes = graph.getChildren("node", ns);
 
-        System.out.println("number of nodes: " + nodes.size());
+//        System.out.println("number of nodes: " + nodes.size());
         GraphBuilder g = null; //new Graph(nodes.size());
 
         List<Element> edges = graph.getChildren("edge", ns);
 
-        System.out.println("number of edges: " + edges.size());
+//        System.out.println("number of edges: " + edges.size());
 
         int max = 0;
         int min = 10000;
@@ -69,7 +69,7 @@ public class GraphBuilder {
         // System.out.println("max weight: "+max);
         // System.out.println("min weight: "+min);
         MyGraph myGraph = new MyGraph();
-        myGraph.printGraph();
+        myGraph.shortestPath(sourceVertex);
         return null;
     }
 

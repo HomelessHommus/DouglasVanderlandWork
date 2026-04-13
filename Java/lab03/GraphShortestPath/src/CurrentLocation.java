@@ -1,4 +1,5 @@
 public class CurrentLocation {
+
     int vertex;
     int totalDistance;
 

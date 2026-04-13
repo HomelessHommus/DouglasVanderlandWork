@@ -52,8 +52,8 @@ public class GraphShortestPathDriver {
             }
         }
 
-        System.out.print("Building graph from file: " +filename +"...");
-        Graph g = GraphBuilder.buildFromGraphML(filename);
+        System.out.println("Building graph from file: " +filename +"...");
+        Graph g = GraphBuilder.buildFromGraphML(filename, sourceVertex);
         System.out.println("done.");
 
         if (printInfo) {

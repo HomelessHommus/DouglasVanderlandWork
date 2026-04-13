@@ -65,10 +65,15 @@ public class MyGraph implements  Graph {
             }
             Collections.reverse(printingPath);
 
-            System.out.println("Shortest path to " + key + " is: (" + printingPath + ")" + " Cost = " + totalDist.get(key));
+            System.out.print("Shortest path to " + key + ":");
+            for (Integer i: printingPath) {
+                System.out.print(" " + i);
+            }
+            System.out.println(": " + "cost = " + totalDist.get(key));
         }
 
-
+//      implement check for sourceVertex to make sure it's not over mainMap length
+//      check for when a path cant reach a vertex
 
     }
 }
