@@ -69,7 +69,13 @@ public class GraphBuilder {
         // System.out.println("max weight: "+max);
         // System.out.println("min weight: "+min);
         MyGraph myGraph = new MyGraph();
-        myGraph.shortestPath(sourceVertex);
+        if (sourceVertex <= mainMap.size()) {
+            myGraph.shortestPath(sourceVertex);
+        }
+        else {
+            System.out.println("Vertex not available...");
+        }
+
         return null;
     }
 
