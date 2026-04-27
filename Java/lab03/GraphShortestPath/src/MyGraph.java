@@ -65,7 +65,7 @@ public class MyGraph implements  Graph {
             }
             Collections.reverse(printingPath);
 
-            System.out.print("Shortest path to " + key + ":");
+            System.out.print("shortest path to " + key + ":");
             for (Integer i: printingPath) {
                 System.out.print(" " + i);
             }
