@@ -12,7 +12,9 @@ import java.util.List;
  */
 public class GraphBuilder {
 
-    public static Graph buildFromGraphML(String file) throws JDOMException, IOException {
+
+
+    public static void buildFromGraphML(String file) throws JDOMException, IOException {
         Graph g = new Graph();
 
         // the SAXBuilder is the easiest way to create the JDOM2 objects.
@@ -31,27 +33,28 @@ public class GraphBuilder {
         List<Element> nodes = graph.getChildren("node", ns);
 
         for (Element e: nodes) {
-            String id = e.getAttribute("id").getValue();
-            // do something here?
+            int id = Integer.parseInt(e.getAttribute("id").getValue());
+            g.addBuilding(id);
         }
 
         List<Element> edges = graph.getChildren("edge", ns);
 
         for (Element e : edges) {
             List<Attribute> at = e.getAttributes();
-            long nS = e.getAttribute("source").getLongValue();
-            long nD = e.getAttribute("target").getLongValue();
+            int nS = e.getAttribute("source").getIntValue();
+            int nD = e.getAttribute("target").getIntValue();
+
 
             List<Element> datas = e.getChildren("data",ns);
             for (Element d: datas) {
                 if (d.getAttribute("key").getValue().equals("d1")) {
                     double dist = Double.parseDouble(d.getText());
-                    // what could you add here?
+                    g.addRoad(nS, nD, dist);
                 }
             }
         }
-        return g;
+        System.out.println(g.startingMap);
     }
-
 }
+
 

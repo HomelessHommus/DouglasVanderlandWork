@@ -1,6 +1,8 @@
 package sim;
+import org.jdom2.JDOMException;
 import solution.DisasterResponder;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,7 +33,7 @@ public class Simulator {
             Simulator sim = new Simulator();
             sim.start();
         }
-        catch(RuntimeException rte) {
+        catch(RuntimeException | IOException | JDOMException rte) {
             rte.printStackTrace();
         }
     }
@@ -218,7 +220,7 @@ public class Simulator {
     }
 
 
-    public void start() {
+    public void start() throws IOException, JDOMException {
 
         eventThread.start();
 

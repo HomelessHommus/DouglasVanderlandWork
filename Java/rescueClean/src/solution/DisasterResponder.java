@@ -1,7 +1,9 @@
 package solution;
 
+import org.jdom2.JDOMException;
 import sim.Message;
 
+import java.io.IOException;
 import java.util.concurrent.*;
 
 public abstract class DisasterResponder  {
@@ -25,9 +27,9 @@ public abstract class DisasterResponder  {
 
     abstract protected void handle(Message s);
 
-    abstract protected void setup() ;
+    abstract protected void setup() throws IOException, JDOMException;
 
-    public final void start(String configFile) {
+    public final void start(String configFile) throws IOException, JDOMException {
         this.configFile = configFile;
         this.commsThread.start();
         System.out.println("RESPONDER SETUP BEGINS");

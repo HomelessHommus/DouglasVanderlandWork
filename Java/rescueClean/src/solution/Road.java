@@ -1,0 +1,35 @@
+package solution;
+
+public class Road {
+
+    int destination;
+    double cost;
+    String access;
+
+    Road (int d, double c) {
+        this.destination = d;
+        this.cost = c;
+        this.access = "open";
+    }
+
+    public long getDestination() {
+        return destination;
+    }
+
+    public void setDestination(int destination) {
+        this.destination = destination;
+    }
+
+    public double getCost() {
+        return cost;
+    }
+
+    public void setCost(double cost) {
+        this.cost = cost;
+    }
+
+    public String toString(){
+        return "(Dest: " + destination + " Cost: " + cost + " Access: " + access + ")";
+    }
+}
+
