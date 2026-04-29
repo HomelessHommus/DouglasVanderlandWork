@@ -3,10 +3,11 @@ package solution;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class Graph {
 
-    public HashMap<Integer, List<Road>> startingMap = new HashMap<>();
+    HashMap<Integer, List<Road>> startingMap = new HashMap<>();
 
     public void addBuilding (int i) {
         startingMap.putIfAbsent(i, new ArrayList<>());
@@ -20,7 +21,18 @@ public class Graph {
         startingMap.remove(i);
     }
 
-    public void removeRoad (int i, int d) {}
+    public void removeRoad (int i, int d, String a) {
+        for (Road r : startingMap.get(i)) {
+            if (r.getDestination() == d) {
+                if (Objects.equals(a, "BLOCKED")) {
+                    r.setAccess(a);
+                }
+            }
+        }
+
+    }
+
+
 
     public String toString(int i){
         return startingMap.get(i).toString();

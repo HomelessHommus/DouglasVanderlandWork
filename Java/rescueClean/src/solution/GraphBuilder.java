@@ -12,9 +12,8 @@ import java.util.List;
  */
 public class GraphBuilder {
 
+    public static Graph buildFromGraphML(String file) throws JDOMException, IOException {
 
-
-    public static void buildFromGraphML(String file) throws JDOMException, IOException {
         Graph g = new Graph();
 
         // the SAXBuilder is the easiest way to create the JDOM2 objects.
@@ -54,6 +53,7 @@ public class GraphBuilder {
             }
         }
         System.out.println(g.startingMap);
+        return g;
     }
 }
 

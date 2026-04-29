@@ -28,6 +28,14 @@ public class Road {
         this.cost = cost;
     }
 
+    public String getAccess() {
+        return access;
+    }
+
+    public void setAccess(String access) {
+        this.access = access;
+    }
+
     public String toString(){
         return "(Dest: " + destination + " Cost: " + cost + " Access: " + access + ")";
     }
