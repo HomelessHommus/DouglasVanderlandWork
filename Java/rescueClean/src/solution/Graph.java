@@ -32,8 +32,6 @@ public class Graph {
 
     }
 
-
-
     public String toString(int i){
         return startingMap.get(i).toString();
     }
