@@ -3,6 +3,8 @@ import org.jdom2.JDOMException;
 import sim.Message;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static java.lang.Integer.parseInt;
 
@@ -10,10 +12,12 @@ public class MyDisasterResponder extends DisasterResponder {
 
     String firstMessage;
     Graph graph = new Graph();
-    String filename = "data/map.100000.graphml";
+    String filename = "data/map.2000.graphml";
+    BlockingQueue<String>  queue = new LinkedBlockingQueue<>();
     @Override
     protected void handle(Message s) {
 
+//        change this so the handle message stores things in a que, then calls a seperate method for the swtich statement
         String messageToUse = s.getMessage();
 
         String[] handlingMessage = messageToUse.split("\\|");

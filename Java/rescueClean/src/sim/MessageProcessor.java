@@ -51,6 +51,7 @@ public class MessageProcessor {
     static Message roadStatus(String from, String to, boolean clear) {
         return new Message(String.format("ROAD|FROM|%s|TO|%s|STATUS|%s",
                 from, to, (clear ? "CLEAR" : "BLOCKED")));
+
     }
 
     static Message rescueRequest(String location, int people) {
