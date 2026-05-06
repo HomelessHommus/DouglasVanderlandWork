@@ -18,6 +18,7 @@ public class MyDisasterResponder extends DisasterResponder {
     protected void handle(Message s) {
 
 //        change this so the handle message stores things in a que, then calls a seperate method for the swtich statement
+//        change so this checks if it's not null
         String messageToUse = s.getMessage();
 
         String[] handlingMessage = messageToUse.split("\\|");
@@ -60,6 +61,9 @@ public class MyDisasterResponder extends DisasterResponder {
 
             case "ERROR":
                 break;
+
+                default:
+                    System.out.println("Unrecognized handling message");
 
         }
     }

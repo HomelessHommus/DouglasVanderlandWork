@@ -84,7 +84,7 @@ public class Simulator {
                 try {
                     while (running) {
                         SimEvent msg = inEventQueue.take();
-                        System.out.println(tickEngine.current_tick + ": SIMULATOR received a message from TickEngine: " + msg);
+//                        System.out.println(tickEngine.current_tick + ": SIMULATOR received a message from TickEngine: " + msg);
                         if (msg == SimEvent.SHUTDOWN) {
                             shutdown();
                         }
