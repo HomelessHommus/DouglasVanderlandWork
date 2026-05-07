@@ -29,7 +29,7 @@ char *TokenName(TokenType tok) {
     }
 }
 
-// grouping together a struct of varialbes called a "Token" to be used later
+// grouping together a struct of variables called a "Token" to be used later
 typedef struct {
     TokenType tType;
     char lex[100];

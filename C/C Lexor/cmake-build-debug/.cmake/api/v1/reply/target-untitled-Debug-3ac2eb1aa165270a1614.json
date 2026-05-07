@@ -38,7 +38,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-g -std=gnu90"
+					"fragment" : "-g -std=gnu90 -fdiagnostics-color=always"
 				}
 			],
 			"language" : "C",

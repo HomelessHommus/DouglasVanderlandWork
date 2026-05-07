@@ -39,7 +39,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "untitled::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-untitled-Debug-f76e4087da8c2faf323e.json",
+					"jsonFile" : "target-untitled-Debug-3ac2eb1aa165270a1614.json",
 					"name" : "untitled",
 					"projectIndex" : 0
 				}
@@ -49,12 +49,12 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "C:/Git Repos/DouglasVanderlandWork/C/C Lexor/cmake-build-debug",
-		"source" : "C:/Git Repos/DouglasVanderlandWork/C/C Lexor"
+		"build" : "M:/Github Repos/DouglasVanderlandWork/C/C Lexor/cmake-build-debug",
+		"source" : "M:/Github Repos/DouglasVanderlandWork/C/C Lexor"
 	},
 	"version" : 
 	{
 		"major" : 2,
-		"minor" : 6
+		"minor" : 7
 	}
 }
