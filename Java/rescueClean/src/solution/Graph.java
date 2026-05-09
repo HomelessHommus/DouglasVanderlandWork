@@ -21,6 +21,10 @@ public class Graph {
         startingMap.remove(i);
     }
 
+    public HashMap<Integer, List<Road>> getStartingMap() {
+        return startingMap;
+    }
+
     public void removeRoad (int i, int d, String a) {
         for (Road r : startingMap.get(i)) {
             if (r.getDestination() == d) {
