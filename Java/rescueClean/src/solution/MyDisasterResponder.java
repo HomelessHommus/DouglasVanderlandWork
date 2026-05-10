@@ -10,24 +10,27 @@ import static java.lang.Integer.parseInt;
 public class MyDisasterResponder extends DisasterResponder {
 
     Graph graph = new Graph();
-    String filename = "data/map.2000.graphml";
+    String filename = "data/map.100000.graphml";
     BlockingQueue<String> RoadDeleteQueue = new LinkedBlockingQueue<>();
     BlockingQueue<String> BuildingDeleteQueue = new LinkedBlockingQueue<>();
     BlockingQueue<String> PathFindingQueue = new LinkedBlockingQueue<>();
-    HashMap<Integer, List<Road>> GraphHM = graph.getStartingMap();
     HashMap<Integer, Double> totalDistance = new HashMap<>();
     HashMap<Integer, Integer> previous = new HashMap<>();
     List<Integer> printingPath = new ArrayList<>();
-    PriorityQueue<CurrentLocation> PQ = new PriorityQueue<CurrentLocation>();
+    PriorityQueue<CurrentLocation> PQ = new PriorityQueue<>(Comparator.comparingInt(o -> (int) o.totalDistance));
     int Building;
     double Distance;
     double newDistance;
     int nextBuilding;
     Integer current;
 
-    public void PathFinding (int startBuilding, int endBuilding) {
+    public ArrayList<Integer> PathFinding (int startBuilding, int endBuilding) {
+        totalDistance.clear();
+        previous.clear();
+        printingPath.clear();
+        PQ.clear();
 
-        for(Integer key : GraphHM.keySet()) {
+        for(Integer key : graph.getStartingMap().keySet()) {
             totalDistance.put(key, 1000000.0);
         }
 
@@ -40,14 +43,23 @@ public class MyDisasterResponder extends DisasterResponder {
             Building = current.Building;
             Distance = current.totalDistance;
 
-            if (Distance < totalDistance.get(Building)) {
+            if (Building == endBuilding) {
+                break;
+            }
+
+            if (Distance > totalDistance.get(Building)) {
                 continue;
             }
-            for (Road road : GraphHM.get(Building)) {
+
+            List<Road> roads = graph.getStartingMap().get(Building);
+
+            if (roads == null) {continue;}
+
+            for (Road road : roads) {
                 nextBuilding = road.destination;
                 newDistance = Distance + road.cost;
 
-                if (newDistance < totalDistance.get(nextBuilding)) {
+                if (newDistance < totalDistance.getOrDefault(nextBuilding, 1000000.0)) {
                     totalDistance.put(nextBuilding, newDistance);
                     previous.put(nextBuilding, Building);
                     PQ.add(new CurrentLocation(nextBuilding, newDistance));
@@ -55,24 +67,26 @@ public class MyDisasterResponder extends DisasterResponder {
             }
         }
 
-        for (Integer key : GraphHM.keySet()) {
-            printingPath.clear();
-            current = key;
-            while (current != null) {
-                printingPath.add(current);
-                current = previous.get(current);
-            }
-            Collections.reverse(printingPath);
-
-            System.out.print("shortest path to " + key + ":");
-            for (Integer i: printingPath) {
-                System.out.print(" " + i);
-            }
-            System.out.println(": " + "cost = " + totalDistance.get(key));
+        printingPath.clear();
+        current = endBuilding;
+        while (current != null) {
+            printingPath.add(current);
+            current = previous.get(current);
         }
+        Collections.reverse(printingPath);
+
+        ArrayList<Integer> path = new ArrayList<>();
+
+        for (Integer key : printingPath) {
+            path.add(key);
+        }
+        return path;
     }
 
+
+
     public void ThreadsControl() {
+
         Thread RoadDeleteThread = new Thread(() -> {
             try {
                 while (true) {
@@ -114,9 +128,11 @@ public class MyDisasterResponder extends DisasterResponder {
         Thread PathFinding = new Thread(() -> {
             try {
                 while (true) {
-                    String pathFinder = BuildingDeleteQueue.take();
+                    String pathFinder = PathFindingQueue.take();
                     String[] messageInUse = pathFinder.split("\\|");
-//                  // add path finding method call here
+                    ArrayList<Integer> temp = new ArrayList<>();
+                    temp = PathFinding((1), Integer.parseInt(messageInUse[2]));
+                    System.out.println(temp);
                 }
             }
             catch (InterruptedException e) {
@@ -127,14 +143,14 @@ public class MyDisasterResponder extends DisasterResponder {
         RoadDeleteThread.start();
         System.out.println("RoadDeleteThread Started");
         BuildingDeleteThread.start();
-        System.out.println("BuildingDeleteThreadStarted");
+        System.out.println("BuildingDeleteThread Started");
+        PathFinding.start();
+        System.out.println("PathFindingThread Started");
 
     }
     @Override
     protected void handle(Message s) {
 
-//        change this so the handle message stores things in a que, then calls a seperate method for the swtich statement
-//        change so this checks if it's not null
         String messageToUse = s.getMessage();
 
         String[] handlingMessage = messageToUse.split("\\|");
@@ -145,7 +161,10 @@ public class MyDisasterResponder extends DisasterResponder {
                 break;
 
             case "ROAD":
-                RoadDeleteQueue.add(messageToUse);
+                if (handlingMessage[6].equals("BLOCKED")) {
+                    RoadDeleteQueue.add(messageToUse);
+                }
+
                 break;
 
             case "LOCATION":
