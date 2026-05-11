@@ -51,7 +51,7 @@ build cmake_object_order_depends_target_untitled: phony || .
 
 build CMakeFiles/untitled.dir/main.c.obj: C_COMPILER__untitled_unscanned_Debug M$:/Github$ Repos/DouglasVanderlandWork/C/C$ Lexor/main.c || cmake_object_order_depends_target_untitled
   DEP_FILE = CMakeFiles\untitled.dir\main.c.obj.d
-  FLAGS = -g -std=gnu90 -fdiagnostics-color=always
+  FLAGS = -g -std=gnu99 -fdiagnostics-color=always
   OBJECT_DIR = CMakeFiles\untitled.dir
   OBJECT_FILE_DIR = CMakeFiles\untitled.dir
 

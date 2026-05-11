@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // grouping together a list of possible token tpyes called "TokenType"
@@ -68,9 +69,14 @@ static char nextPos(LexorPos *lxpos) {
 
 // A function that scans the text and processes the token
 Token NextToken(LexorPos *lxpos) {
-
     // initialising variables for the row and column position to be returned
     Token token;
+
+    // scans for whitespace then calls the nextPos function until it reads something
+    while (*lxpos->source && isspace((unsigned char) *lxpos->source)) {
+        nextPos(lxpos);
+    }
+
     token.row = lxpos->row;
     token.column = lxpos->column;
 
@@ -98,7 +104,7 @@ Token NextToken(LexorPos *lxpos) {
 
     // if the turing machine head detects an identifier string, sets a TokenIdentifier token,
     // then checks if these identifiers are keywords or not
-    if (isalpha((unsigned char)*lxpos->source || *lxpos->source == '_')) {
+    if (isalpha((unsigned char)*lxpos->source) || *lxpos->source == '_') {
 
         int i = 0;
 
@@ -112,8 +118,8 @@ Token NextToken(LexorPos *lxpos) {
 
         // checks the keywords array to see if the TokenIdentifier matches any keywords,
         // if so, sets this to TokenKeyword instead of TokenIdentifier
-        for (char c: keywords) {
-            if (strcmp(token.lex, c) == 0) {
+        for (int a = 0; a < 8; a++) {
+            if (strcmp(token.lex, keywords[a]) == 0) {
                 token.tType = TokenKeyword;
                 break;
             }
@@ -138,6 +144,36 @@ Token NextToken(LexorPos *lxpos) {
 }
 
     int main(void) {
-        printf("Hello, World!\n");
-        return 0;
+
+    // reads a file (HAS TO BE FROM ABSOLUTE PATH), sees how big it is,
+    // creates space for it, then reads it into finalSource
+    FILE *testcode = fopen("M:/Github Repos/DouglasVanderlandWork/C/C Lexor/Code test 1.txt", "r");
+    if (!testcode) {
+        printf("Error opening test 1.txt\n");
     }
+    fseek(testcode, 0, SEEK_END);
+    int size = ftell(testcode);
+    rewind(testcode);
+    char *finalSource = malloc(size + 1);
+    fread(finalSource, 1, size, testcode);
+    finalSource[size] = '\0';
+    fclose(testcode);
+
+    // Sets the turing head position at the start of the file ready to read
+    LexorPos lxpos = {
+        .source = finalSource, .row = 1, .column = 1
+    };
+
+    Token token;
+
+    // a do-while loop that constantly calls NextToken on a Token variable, then prints it
+    // loop stops when a TokenEnd is returned signalling the end of the file
+    do {
+        token = NextToken(&lxpos);
+        printf("%-10s %-10s row %-10d column %d\n",
+            token.lex, TokenName(token.tType), token.row, token.column);
+
+    } while (token.tType != TokenEnd);
+
+    return 0;
+}
