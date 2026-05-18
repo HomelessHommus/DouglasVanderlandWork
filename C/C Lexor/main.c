@@ -10,7 +10,8 @@ typedef enum {
     TokenLiteral,
     TokenDelimiter,
     TokenEnd,
-    TokenUnknown
+    TokenUnknown,
+    TokenTooLong
 } TokenType;
 
 // switch statement to return the type of token to then print it
@@ -28,6 +29,8 @@ char *TokenName(TokenType tok) {
             return "End of File";
         case TokenUnknown:
             return "Unknown";
+        case TokenTooLong:
+            return "Sequence Too Long";
         default:
             return "Unknown";
     }
@@ -38,12 +41,16 @@ char *TokenName(TokenType tok) {
 typedef struct {
     TokenType tType;
     char lex[100];
+    int row;
+    int column;
 } Token;
 
 // grouping together a struct of variables called "LexorPos" to be used by nextPos function
 // to keep track of the lexor position variables
 typedef struct {
     char *source;
+    int row;
+    int column;
 } LexorPos;
 
 // 2 lists that can be looped over to make it easier to find matches
@@ -53,10 +60,17 @@ char delimiters[] = ";,(){}[]";
 // Moves the head of the turing machine to the next character in the string
 static char nextPos(LexorPos *lxpos) {
     char c = *lxpos->source++;
+    if (c == '\n') {
+        lxpos->row++;
+        lxpos->column = 1;
+    }
+    else {
+        lxpos->column++;
+    }
     return c;
 }
 
-// A function that scans the text and processes the token
+// A function that scans the character/s and processes the token
 Token NextToken(LexorPos *lxpos) {
 
     Token token;
@@ -65,6 +79,10 @@ Token NextToken(LexorPos *lxpos) {
     while (*lxpos->source && isspace((unsigned char) *lxpos->source)) {
         nextPos(lxpos);
     }
+
+    //assigns the row and column values to the token to be printed later
+    token.row = lxpos->row;
+    token.column = lxpos->column;
 
 
     // if the turing machine head is at the end of the file return a TokenEnd token
@@ -77,11 +95,20 @@ Token NextToken(LexorPos *lxpos) {
     // if the turing machine head is at a digit, calls nextPos to get whole digit string,
     // then returns whole thing as TokenLiteral token
     if (isdigit((unsigned char)*lxpos->source)) {
+
         int i = 0;
 
         // while loops until next position is not a digit
         while (isdigit((unsigned char)*lxpos->source)) {
             token.lex[i++] = nextPos(lxpos);
+            if (i == 99) {
+                token.lex[i] = '\0';
+                token.tType = TokenTooLong;
+                while (*lxpos->source && isdigit((unsigned char) *lxpos->source)) {
+                    nextPos(lxpos);
+                }
+                return token;
+            }
         }
 
         token.lex[i] = '\0';
@@ -98,6 +125,14 @@ Token NextToken(LexorPos *lxpos) {
         // while loops until next character is not an alphanumeric or and underscore
         while (isalnum((unsigned char)*lxpos->source) || *lxpos->source == '_') {
             token.lex[i++] = nextPos(lxpos);
+            if (i == 99) {
+                token.lex[i] = '\0';
+                token.tType = TokenTooLong;
+                while (isalnum((unsigned char)*lxpos->source) || *lxpos->source == '_') {
+                    nextPos(lxpos);
+                }
+                return token;
+            }
         }
 
         token.lex[i] = '\0';
@@ -130,13 +165,13 @@ Token NextToken(LexorPos *lxpos) {
     return token;
 }
 
-    int main(void) {
+    int main(int argc, char *argv[]) {
 
-    // reads a file (HAS TO BE FROM ABSOLUTE PATH), sees how big it is,
+    // reads a file provided in the arguments and sees how big it is,
     // creates space for it, then reads it into finalSource
-    FILE *testcode = fopen("M:/Github Repos/DouglasVanderlandWork/C/C Lexor/Code test 2.c", "rb");
+    FILE *testcode = fopen(argv[1], "rb");
     if (!testcode) {
-        printf("Error opening test 1.txt\n");
+        printf("Error opening file\n");
     }
     fseek(testcode, 0, SEEK_END);
     int size = ftell(testcode);
@@ -148,7 +183,9 @@ Token NextToken(LexorPos *lxpos) {
 
     // Sets the turing head position at the start of the file ready to read
     LexorPos lxpos = {
-        .source = finalSource
+        .source = finalSource,
+        .row = 1,
+        .column = 1
     };
 
     Token token;
@@ -157,8 +194,11 @@ Token NextToken(LexorPos *lxpos) {
     // loop stops when a TokenEnd is returned signalling the end of the file
     do {
         token = NextToken(&lxpos);
-        printf("%-10s %-10s \n",
-            token.lex, TokenName(token.tType));
+        printf("%-20s %-20s row %-20d column %d\n",
+            token.lex,
+            TokenName(token.tType),
+            token.row,
+            token.column);
 
     } while (token.tType != TokenEnd);
 
