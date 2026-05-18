@@ -14,6 +14,7 @@ public class MyDisasterResponder extends DisasterResponder {
     // setup variables to refer back to
     String origin;
     Graph graph = new Graph();
+    HashMap<Integer, VehicleTracker> availableVehicles = new HashMap<>();
 
     // queue for the path finding messages
     BlockingQueue<String> PathFindingQueue = new LinkedBlockingQueue<>();
@@ -65,16 +66,18 @@ public class MyDisasterResponder extends DisasterResponder {
 
             for (Road road : roads) {
                 if (road.getAccess().equals("open")) {
-                    nextBuilding = road.destination;
-                    newDistance = Distance + road.cost;
+                    if (graph.startingMap.containsKey(road.getDestination())) {
 
-                    if (newDistance < totalDistance.getOrDefault(nextBuilding, 1000000.0)) {
-                        totalDistance.put(nextBuilding, newDistance);
-                        previous.put(nextBuilding, Building);
-                        PQ.add(new CurrentLocation(nextBuilding, newDistance));
+                        nextBuilding = road.getDestination();
+                        newDistance = Distance + road.getCost();
+
+                        if (newDistance < totalDistance.getOrDefault(nextBuilding, 1000000.0)) {
+                            totalDistance.put(nextBuilding, newDistance);
+                            previous.put(nextBuilding, Building);
+                            PQ.add(new CurrentLocation(nextBuilding, newDistance));
+                        }
                     }
                 }
-
             }
         }
 
@@ -95,81 +98,6 @@ public class MyDisasterResponder extends DisasterResponder {
         return path.toString();
     }
 
-    public void ThreadsControl() {
-        executor.submit(new Runnable() {
-            @Override
-            public void run() {
-
-
-
-            }
-        });
-
-//        Thread RoadDeleteThread = new Thread(() -> {
-//            try {
-//                while (true) {
-//                    String deleteRoad = RoadDeleteQueue.take();
-//                    String[] messageInUse = deleteRoad.split("\\|");
-//
-//                    if (Objects.equals(messageInUse[6], "BLOCKED")) {
-//                        if (graph.startingMap.containsKey(Integer.parseInt(messageInUse[2]))) {
-//                            graph.removeRoad (parseInt(messageInUse[2]), parseInt(messageInUse[4]), messageInUse[6]);
-//                            System.out.println("Road from " +  messageInUse[2] + " to " + messageInUse[4] + " has been blocked");
-//                        }
-//                    }
-//                }
-//            }
-//            catch (InterruptedException e) {
-//                Thread.currentThread().interrupt();
-//            }
-//        });
-//
-//        Thread BuildingDeleteThread = new Thread(() -> {
-//            try {
-//                while (true) {
-//                    String deleteBuilding = BuildingDeleteQueue.take();
-//                    String[] messageInUse = deleteBuilding.split("\\|");
-//
-//                    if (Objects.equals(messageInUse[2], "COLLAPSED")) {
-//                        if (graph.startingMap.containsKey(Integer.parseInt(messageInUse[1]))) {
-//                            graph.removeBuilding(parseInt(messageInUse[1]));
-//                            System.out.println("Building " + parseInt(messageInUse[1]) + " removed");
-//                        }
-//                    }
-//                }
-//            }
-//            catch (InterruptedException e) {
-//                Thread.currentThread().interrupt();
-//            }
-//        });
-
-        Thread PathFinding = new Thread(() -> {
-            try {
-                while (true) {
-                    String pathFinder = PathFindingQueue.take();
-                    String[] messageInUse = pathFinder.split(" ");
-                    String temp;
-                    temp = PathFinding(Integer.parseInt(messageInUse[0]), Integer.parseInt(messageInUse[1]));
-                    System.out.println(temp);
-                    Message n = new Message("PATH|VEHICLE|1|WAYPOINTS|" + temp);
-                    outMessageQueue.add(n);
-
-                }
-            }
-            catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        });
-
-//        RoadDeleteThread.start();
-//        System.out.println("RoadDeleteThread Started");
-//        BuildingDeleteThread.start();
-//        System.out.println("BuildingDeleteThread Started");
-        PathFinding.start();
-        System.out.println("PathFindingThread Started");
-
-    }
-    @Override
     protected void handle(Message s) {
 
         String rescueMessage;
@@ -180,22 +108,33 @@ public class MyDisasterResponder extends DisasterResponder {
 
         switch (handlingMessage[0]) {
             case "RESCUE":
-                rescueMessage = origin + " " + handlingMessage[2];
-                System.out.println(rescueMessage);
+                Integer vehicleToUse = null;
+                for (Integer key : availableVehicles.keySet()) {
+                    if (!availableVehicles.get(key).getInUse()) {
+                        vehicleToUse = key;
+                        availableVehicles.get(key).setInUse(true);
+                        break;
+                    }
+                }
+                rescueMessage = origin + " " + handlingMessage[2] + " " + vehicleToUse;
+                availableVehicles.get(vehicleToUse).setFinalDestination(handlingMessage[2]);
                 PathFindingQueue.add(rescueMessage);
                 break;
 
             case "ROAD":
                 if (handlingMessage[6].equals("BLOCKED")){
-                    if (graph.startingMap.containsKey(Integer.parseInt(handlingMessage[2]))) {
+                    if (graph.startingMap.containsKey(parseInt(handlingMessage[2]))) {
                         graph.removeRoad (parseInt(handlingMessage[2]), parseInt(handlingMessage[4]), handlingMessage[6]);
                         System.out.println("Road from " +  handlingMessage[2] + " to " + handlingMessage[4] + " has been blocked");
+                    }
+                    if (graph.startingMap.containsKey(parseInt(handlingMessage[4]))) {
+                        graph.removeRoad(parseInt(handlingMessage[4]), parseInt(handlingMessage[2]), handlingMessage[6]);
                     }
                 }
                 break;
 
             case "LOCATION":
-                if (graph.startingMap.containsKey(Integer.parseInt(handlingMessage[1]))) {
+                if (graph.startingMap.containsKey(parseInt(handlingMessage[1]))) {
                     graph.removeBuilding(parseInt(handlingMessage[1]));
                     System.out.println("Building " + parseInt(handlingMessage[1]) + " removed");
                 }
@@ -205,14 +144,22 @@ public class MyDisasterResponder extends DisasterResponder {
                 break;
 
             case "WAYPOINT_INVALID":
+                graph.removeRoad(parseInt(handlingMessage[4]), parseInt(handlingMessage[6]), "BLOCKED");
+                graph.removeRoad(parseInt(handlingMessage[6]), parseInt(handlingMessage[4]), "BLOCKED");
+                System.out.println("Road from " +  handlingMessage[4] + " to " + handlingMessage[6] + " has been blocked");
+                rescueMessage = handlingMessage[4] + " " + availableVehicles.get(parseInt(handlingMessage[2])).getFinalDestination() + " " + handlingMessage[2];
+                PathFindingQueue.add(rescueMessage);
                 break;
 
             case "VEHICLE":
                 if (handlingMessage[2].equals("HALTED")) {
                     if (!handlingMessage[4].equals(origin)) {
-                        rescueMessage = handlingMessage[4] + " " + origin;
+                        rescueMessage = handlingMessage[4] + " " + origin + " " + handlingMessage[1];
                         PathFindingQueue.add(rescueMessage);
                     }
+                }
+                if (handlingMessage[2].equals("RETURNED")) {
+                    availableVehicles.get(parseInt(handlingMessage[1])).setInUse(false);
                 }
                 break;
 
@@ -232,6 +179,23 @@ public class MyDisasterResponder extends DisasterResponder {
         String filename = ConfigurationInfo.getMapFile(configFile);
         origin = ConfigurationInfo.getOrigin(configFile);
         graph = GraphBuilder.buildFromGraphML(filename);
-        ThreadsControl();
+        for (int i = 1; i <= ConfigurationInfo.NUMBER_OF_VEHICLES; i++) {
+            availableVehicles.put(i, new VehicleTracker(i));
+        }
+        executor.submit(() -> {
+            try {
+                while (!Thread.currentThread().isInterrupted()) {
+                    String pathFinder = PathFindingQueue.take();
+                    String[] messageInUse = pathFinder.split(" ");
+                    String temp;
+                    temp = PathFinding(parseInt(messageInUse[0]), parseInt(messageInUse[1]));
+                    Message n = new Message("PATH|VEHICLE|" + messageInUse[2] + "|WAYPOINTS|" + temp);
+                    outMessageQueue.add(n);
+                }
+            }
+            catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
     }
 }

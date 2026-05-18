@@ -25,11 +25,11 @@ public class Graph {
         return startingMap;
     }
 
-    public void removeRoad (int i, int d, String a) {
-        for (Road r : startingMap.get(i)) {
-            if (r.getDestination() == d) {
-                if (Objects.equals(a, "BLOCKED")) {
-                    r.setAccess(a);
+    public void removeRoad (int Building, int Destination, String Access) {
+        for (Road r : startingMap.get(Building)) {
+            if (r.getDestination() == Destination) {
+                if (Objects.equals(Access, "BLOCKED")) {
+                    r.setAccess(Access);
                 }
             }
         }

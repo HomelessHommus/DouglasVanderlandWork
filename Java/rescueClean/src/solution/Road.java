@@ -2,9 +2,9 @@ package solution;
 
 public class Road {
 
-    int destination;
-    double cost;
-    String access;
+    private int destination;
+    private double cost;
+    private String access;
 
     Road (int d, double c) {
         this.destination = d;
@@ -12,7 +12,7 @@ public class Road {
         this.access = "open";
     }
 
-    public long getDestination() {
+    public int getDestination() {
         return destination;
     }
 

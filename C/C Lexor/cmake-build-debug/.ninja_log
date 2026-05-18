@@ -1,6 +1,13 @@
 # ninja log v6
-4	80	8002186896178593	CMakeFiles/untitled.dir/main.c.obj	e70fac8d9d1e31bd
-81	170	8002186896942733	untitled.exe	c890a7fb00f1baf7
-2	518	8002918533618679	build.ninja	e3cbdb7d915c677f
-43	167	8002983753549242	CMakeFiles/untitled.dir/main.c.obj	e70fac8d9d1e31bd
-168	405	8002983754781501	untitled.exe	c890a7fb00f1baf7
+4	52	8006273559002119	CMakeFiles/untitled.dir/Code_test_2.c.obj	ed2c01ba76a14a2d
+10	92	8006263220564211	CMakeFiles/untitled.dir/main.c.obj	e70fac8d9d1e31bd
+52	144	8006273559493874	untitled.exe	3c7ab21d522ce923
+2	518	8006274365454348	build.ninja	e3cbdb7d915c677f
+9	272	8006274365454348	build.ninja	e3cbdb7d915c677f
+26	123	8006274366413041	untitled.exe	c890a7fb00f1baf7
+4	229	8007131960663480	CMakeFiles/untitled.dir/main.c.obj	e70fac8d9d1e31bd
+229	440	8007131962904052	untitled.exe	c890a7fb00f1baf7
+53	411	8007686731546627	CMakeFiles/untitled.dir/main.c.obj	e70fac8d9d1e31bd
+412	643	8007686735134619	untitled.exe	c890a7fb00f1baf7
+11	99	8007693475912999	CMakeFiles/untitled.dir/main.c.obj	e70fac8d9d1e31bd
+99	208	8007693476802361	untitled.exe	c890a7fb00f1baf7

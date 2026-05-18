@@ -38,16 +38,12 @@ char *TokenName(TokenType tok) {
 typedef struct {
     TokenType tType;
     char lex[100];
-    int row;
-    int column;
 } Token;
 
 // grouping together a struct of variables called "LexorPos" to be used by nextPos function
 // to keep track of the lexor position variables
 typedef struct {
     char *source;
-    int row;
-    int column;
 } LexorPos;
 
 // 2 lists that can be looped over to make it easier to find matches
@@ -57,19 +53,12 @@ char delimiters[] = ";,(){}[]";
 // Moves the head of the turing machine to the next character in the string
 static char nextPos(LexorPos *lxpos) {
     char c = *lxpos->source++;
-    if (c == '\n') {
-        lxpos->row++;
-        lxpos->column = 1;
-    }
-    else {
-        lxpos->column++;
-    }
     return c;
 }
 
 // A function that scans the text and processes the token
 Token NextToken(LexorPos *lxpos) {
-    // initialising variables for the row and column position to be returned
+
     Token token;
 
     // scans for whitespace then calls the nextPos function until it reads something
@@ -77,12 +66,10 @@ Token NextToken(LexorPos *lxpos) {
         nextPos(lxpos);
     }
 
-    token.row = lxpos->row;
-    token.column = lxpos->column;
 
     // if the turing machine head is at the end of the file return a TokenEnd token
     if (*lxpos->source == '\0') {
-        strcpy(token.lex, "");
+        token.lex[0] = '\0';
         token.tType = TokenEnd;
         return token;
     }
@@ -108,7 +95,7 @@ Token NextToken(LexorPos *lxpos) {
 
         int i = 0;
 
-        // while loops until next character is not an alphanumeric
+        // while loops until next character is not an alphanumeric or and underscore
         while (isalnum((unsigned char)*lxpos->source) || *lxpos->source == '_') {
             token.lex[i++] = nextPos(lxpos);
         }
@@ -147,7 +134,7 @@ Token NextToken(LexorPos *lxpos) {
 
     // reads a file (HAS TO BE FROM ABSOLUTE PATH), sees how big it is,
     // creates space for it, then reads it into finalSource
-    FILE *testcode = fopen("M:/Github Repos/DouglasVanderlandWork/C/C Lexor/Code test 1.txt", "r");
+    FILE *testcode = fopen("M:/Github Repos/DouglasVanderlandWork/C/C Lexor/Code test 2.c", "rb");
     if (!testcode) {
         printf("Error opening test 1.txt\n");
     }
@@ -161,7 +148,7 @@ Token NextToken(LexorPos *lxpos) {
 
     // Sets the turing head position at the start of the file ready to read
     LexorPos lxpos = {
-        .source = finalSource, .row = 1, .column = 1
+        .source = finalSource
     };
 
     Token token;
@@ -170,8 +157,8 @@ Token NextToken(LexorPos *lxpos) {
     // loop stops when a TokenEnd is returned signalling the end of the file
     do {
         token = NextToken(&lxpos);
-        printf("%-10s %-10s row %-10d column %d\n",
-            token.lex, TokenName(token.tType), token.row, token.column);
+        printf("%-10s %-10s \n",
+            token.lex, TokenName(token.tType));
 
     } while (token.tType != TokenEnd);
 
