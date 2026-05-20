@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+// MUST INCLUDE
+// set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -s")
+// in the CMakeLists.txt to get the executable to under 50KB
+
 // grouping together a list of possible token tpyes called "TokenType"
 typedef enum {
     TokenKeyword,
@@ -98,7 +102,8 @@ Token NextToken(LexorPos *lxpos) {
 
         int i = 0;
 
-        // while loops until next position is not a digit
+        // while loops until next position is not a digit, or index == 99
+        // if index is 99, then the input is too long. Skips over rest if the input
         while (isdigit((unsigned char)*lxpos->source)) {
             token.lex[i++] = nextPos(lxpos);
             if (i == 99) {
@@ -123,6 +128,7 @@ Token NextToken(LexorPos *lxpos) {
         int i = 0;
 
         // while loops until next character is not an alphanumeric or and underscore
+        // or index == 9. If index is 99, then the input is too long. Skips over rest if the input
         while (isalnum((unsigned char)*lxpos->source) || *lxpos->source == '_') {
             token.lex[i++] = nextPos(lxpos);
             if (i == 99) {
@@ -140,6 +146,7 @@ Token NextToken(LexorPos *lxpos) {
 
         // checks the keywords array to see if the TokenIdentifier matches any keywords,
         // if so, sets this to TokenKeyword instead of TokenIdentifier
+        // keyword array is length 8, hence for loop up to 8
         for (int a = 0; a < 8; a++) {
             if (strcmp(token.lex, keywords[a]) == 0) {
                 token.tType = TokenKeyword;

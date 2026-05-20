@@ -2,21 +2,21 @@ package solution;
 
 public class Road {
 
-    private int destination;
+    private Long destination;
     private double cost;
     private String access;
 
-    Road (int d, double c) {
+    Road (Long d, double c) {
         this.destination = d;
         this.cost = c;
         this.access = "open";
     }
 
-    public int getDestination() {
+    public Long getDestination() {
         return destination;
     }
 
-    public void setDestination(int destination) {
+    public void setDestination(Long destination) {
         this.destination = destination;
     }
 

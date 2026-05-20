@@ -7,27 +7,27 @@ import java.util.Objects;
 
 public class Graph {
 
-    HashMap<Integer, List<Road>> startingMap = new HashMap<>();
+    HashMap<Long, List<Road>> startingMap = new HashMap<>();
 
-    public void addBuilding (int i) {
+    public void addBuilding (long i) {
         startingMap.putIfAbsent(i, new ArrayList<>());
     }
 
-    public void addRoad (int i, int d, double e) {
+    public void addRoad (Long i, Long d, double e) {
         startingMap.get(i).add(new Road(d, e));
     }
 
-    public void removeBuilding (int i) {
+    public void removeBuilding (Long i) {
         startingMap.remove(i);
     }
 
-    public HashMap<Integer, List<Road>> getStartingMap() {
+    public HashMap<Long, List<Road>> getStartingMap() {
         return startingMap;
     }
 
-    public void removeRoad (int Building, int Destination, String Access) {
+    public void removeRoad (Long Building, Long Destination, String Access) {
         for (Road r : startingMap.get(Building)) {
-            if (r.getDestination() == Destination) {
+            if (Objects.equals(r.getDestination(), Destination)) {
                 if (Objects.equals(Access, "BLOCKED")) {
                     r.setAccess(Access);
                 }
@@ -35,7 +35,7 @@ public class Graph {
         }
     }
 
-    public String toString(int i){
+    public String toString(Long i){
         return startingMap.get(i).toString();
     }
 }

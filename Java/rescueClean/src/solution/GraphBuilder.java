@@ -32,7 +32,7 @@ public class GraphBuilder {
         List<Element> nodes = graph.getChildren("node", ns);
 
         for (Element e: nodes) {
-            int id = Integer.parseInt(e.getAttribute("id").getValue());
+            long id = Long.parseLong(e.getAttribute("id").getValue());
             g.addBuilding(id);
         }
 
@@ -40,8 +40,8 @@ public class GraphBuilder {
 
         for (Element e : edges) {
             List<Attribute> at = e.getAttributes();
-            int nS = e.getAttribute("source").getIntValue();
-            int nD = e.getAttribute("target").getIntValue();
+            Long nS = e.getAttribute("source").getLongValue();
+            Long nD = e.getAttribute("target").getLongValue();
 
 
             List<Element> datas = e.getChildren("data",ns);
