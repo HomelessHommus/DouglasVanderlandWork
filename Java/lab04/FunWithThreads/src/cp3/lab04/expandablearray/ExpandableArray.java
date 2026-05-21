@@ -1,5 +1,8 @@
 package cp3.lab04.expandablearray;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * The class implements an adaptable array of arbitrary objects, i.e.,
  * the size of the array can be increased or decreased according to the number
@@ -12,11 +15,12 @@ package cp3.lab04.expandablearray;
  * A conflict could occur if, e.g., two threads tried to perform an add()
  * operation at the same time.
  */
-public class ExpandableArray
+public class ExpandableArray extends Thread
 {
 
     private Object[] data;
     private int size = 0;
+    ExecutorService executor = Executors.newFixedThreadPool(10);
 
     /**
      * Initialize the array with an initial capacity of <code>cap</code>.
@@ -60,14 +64,18 @@ public class ExpandableArray
      */
     public void add(Object x)
     {
-        if (size == data.length) // too small
-        {
-            Object[] od = data;
-            //data = new Object[3 * (size + 1)/2];
-            data = new Object[size + 2];
-            System.arraycopy(od, 0, data, 0, od.length);
-        }
-        data[size++] = x;
+         executor.submit(()->{
+            if (size == data.length) // too small
+            {
+                Object[] od = data;
+                //data = new Object[3 * (size + 1)/2];
+                data = new Object[size + 2];
+                System.arraycopy(od, 0, data, 0, od.length);
+            }
+            data[size++] = x;
+         });
+
+
     }
 
     /**
