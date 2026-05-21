@@ -1,0 +1,250 @@
+<html>
+<head>
+<title>main.c</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #b3ae60;}
+.s1 { color: #bcbec4;}
+.s2 { color: #6aab73;}
+.s3 { color: #7a7e85;}
+.s4 { color: #cf8e6d;}
+.s5 { color: #bcbec4;}
+.s6 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+main.c</font>
+</center></td></tr></table>
+<pre><span class="s0">#include </span><span class="s2">&lt;ctype.h&gt;</span>
+<span class="s0">#include </span><span class="s2">&lt;stdio.h&gt;</span>
+<span class="s0">#include </span><span class="s2">&lt;stdlib.h&gt;</span>
+<span class="s0">#include </span><span class="s2">&lt;string.h&gt;</span>
+
+<span class="s3">// Douglas Vanderland</span>
+<span class="s3">// vand0475</span>
+
+<span class="s3">// MUST INCLUDE</span>
+<span class="s3">// set(CMAKE_C_FLAGS &quot;${CMAKE_C_FLAGS} -Os -s&quot;)</span>
+<span class="s3">// in the CMakeLists.txt to get the executable to under 50KB</span>
+
+<span class="s3">// TO READ A FILE, INCLUDE THE FILE PATH IN THE PROGRAM PARAMETERS</span>
+
+<span class="s3">// grouping together a list of possible token types called &quot;TokenType&quot;</span>
+<span class="s4">typedef enum </span><span class="s5">{</span>
+    <span class="s1">TokenKeyword</span><span class="s5">,</span>
+    <span class="s1">TokenIdentifier</span><span class="s5">,</span>
+    <span class="s1">TokenLiteral</span><span class="s5">,</span>
+    <span class="s1">TokenDelimiter</span><span class="s5">,</span>
+    <span class="s1">TokenEnd</span><span class="s5">,</span>
+    <span class="s1">TokenUnknown</span><span class="s5">,</span>
+    <span class="s1">TokenTooLong</span>
+<span class="s5">} </span><span class="s1">TokenType</span><span class="s5">;</span>
+
+<span class="s3">// a switch statement to return the type of token to then print it</span>
+<span class="s4">char </span><span class="s5">*</span><span class="s1">TokenName</span><span class="s5">(</span><span class="s1">TokenType tok</span><span class="s5">) {</span>
+    <span class="s4">switch </span><span class="s5">(</span><span class="s1">tok</span><span class="s5">) {</span>
+        <span class="s4">case </span><span class="s1">TokenKeyword:</span>
+            <span class="s4">return </span><span class="s2">&quot;Keyword&quot;</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">TokenIdentifier:</span>
+            <span class="s4">return </span><span class="s2">&quot;Identifier&quot;</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">TokenLiteral:</span>
+            <span class="s4">return </span><span class="s2">&quot;Literal&quot;</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">TokenDelimiter:</span>
+            <span class="s4">return </span><span class="s2">&quot;Delimiter&quot;</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">TokenEnd:</span>
+            <span class="s4">return </span><span class="s2">&quot;End of File&quot;</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">TokenUnknown:</span>
+            <span class="s4">return </span><span class="s2">&quot;Unknown&quot;</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">TokenTooLong:</span>
+            <span class="s4">return </span><span class="s2">&quot;Sequence Too Long&quot;</span><span class="s5">;</span>
+        <span class="s4">default</span><span class="s1">:</span>
+            <span class="s4">return </span><span class="s2">&quot;Unknown&quot;</span><span class="s5">;</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+
+<span class="s3">// grouping together a struct of variables called a &quot;Token&quot; to be used to define a token to be returned</span>
+<span class="s3">// includes the TokenType typedef as a token ID with the tokens position</span>
+<span class="s4">typedef struct </span><span class="s5">{</span>
+    <span class="s1">TokenType tType</span><span class="s5">;</span>
+    <span class="s4">char </span><span class="s1">lex</span><span class="s5">[</span><span class="s6">100</span><span class="s5">];</span>
+    <span class="s4">int </span><span class="s1">row</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">column</span><span class="s5">;</span>
+<span class="s5">} </span><span class="s1">Token</span><span class="s5">;</span>
+
+<span class="s3">// grouping together a struct of variables called &quot;LexorPos&quot; to be used by nextPos function</span>
+<span class="s3">// to keep track of the lexor position variables</span>
+<span class="s4">typedef struct </span><span class="s5">{</span>
+    <span class="s4">char </span><span class="s5">*</span><span class="s1">source</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">row</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">column</span><span class="s5">;</span>
+<span class="s5">} </span><span class="s1">LexorPos</span><span class="s5">;</span>
+
+<span class="s3">// 2 lists that can be looped over to make it easier to find matches</span>
+<span class="s4">char </span><span class="s5">*</span><span class="s1">keywords</span><span class="s5">[] = {</span><span class="s2">&quot;int&quot;</span><span class="s5">, </span><span class="s2">&quot;char&quot;</span><span class="s5">, </span><span class="s2">&quot;if&quot;</span><span class="s5">, </span><span class="s2">&quot;else&quot;</span><span class="s5">, </span><span class="s2">&quot;while&quot;</span><span class="s5">, </span><span class="s2">&quot;for&quot;</span><span class="s5">, </span><span class="s2">&quot;do&quot;</span><span class="s5">, </span><span class="s2">&quot;return&quot;</span><span class="s5">};</span>
+<span class="s4">char </span><span class="s1">delimiters</span><span class="s5">[] = </span><span class="s2">&quot;;,(){}[]&quot;</span><span class="s5">;</span>
+
+<span class="s3">// Moves to the next position in the character sequence</span>
+<span class="s3">// Mainly used to read a whole word or digit &gt;9 to be analysed for a token type</span>
+<span class="s4">static char </span><span class="s1">nextPos</span><span class="s5">(</span><span class="s1">LexorPos </span><span class="s5">*</span><span class="s1">lxpos</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">c </span><span class="s5">= *</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source</span><span class="s5">++;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">c </span><span class="s5">== </span><span class="s2">'</span><span class="s4">\n</span><span class="s2">'</span><span class="s5">) {</span>
+        <span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">row</span><span class="s5">++;</span>
+        <span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">column </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">else </span><span class="s5">{</span>
+        <span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">column</span><span class="s5">++;</span>
+    <span class="s5">}</span>
+    <span class="s4">return </span><span class="s1">c</span><span class="s5">;</span>
+<span class="s5">}</span>
+
+<span class="s3">// A function that calls the next token to be read and where the if statements are located</span>
+<span class="s1">Token NextToken</span><span class="s5">(</span><span class="s1">LexorPos </span><span class="s5">*</span><span class="s1">lxpos</span><span class="s5">) {</span>
+
+    <span class="s1">Token token</span><span class="s5">;</span>
+
+    <span class="s3">// scans for whitespace then calls the nextPos function until it reads something</span>
+    <span class="s4">while </span><span class="s5">(*</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source </span><span class="s5">&amp;&amp; </span><span class="s1">isspace</span><span class="s5">((</span><span class="s4">unsigned char</span><span class="s5">) *</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source</span><span class="s5">)) {</span>
+        <span class="s1">nextPos</span><span class="s5">(</span><span class="s1">lxpos</span><span class="s5">);</span>
+    <span class="s5">}</span>
+
+    <span class="s3">//assigns the row and column values to the token to be printed later</span>
+    <span class="s1">token</span><span class="s5">.</span><span class="s1">row </span><span class="s5">= </span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">row</span><span class="s5">;</span>
+    <span class="s1">token</span><span class="s5">.</span><span class="s1">column </span><span class="s5">= </span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">column</span><span class="s5">;</span>
+
+    <span class="s3">// If the current character is null, a TokenEnd is returned to signify the end of the file</span>
+    <span class="s4">if </span><span class="s5">(*</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source </span><span class="s5">== </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">) {</span>
+
+        <span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">[</span><span class="s6">0</span><span class="s5">] = </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">;</span>
+        <span class="s1">token</span><span class="s5">.</span><span class="s1">tType </span><span class="s5">= </span><span class="s1">TokenEnd</span><span class="s5">;</span>
+        <span class="s4">return </span><span class="s1">token</span><span class="s5">;</span>
+    <span class="s5">}</span>
+
+    <span class="s3">// if the character being read is a digit, calls nextPos to get whole digit string,</span>
+    <span class="s3">// then returns whole thing as TokenLiteral token</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">isdigit</span><span class="s5">((</span><span class="s4">unsigned char</span><span class="s5">)*</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source</span><span class="s5">)) {</span>
+
+        <span class="s4">int </span><span class="s1">i </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+
+        <span class="s3">// while loops until next position is not a digit, or index == 99</span>
+        <span class="s3">// if index is 99, then the input is too long. Skips over rest of the input</span>
+        <span class="s4">while </span><span class="s5">(</span><span class="s1">isdigit</span><span class="s5">((</span><span class="s4">unsigned char</span><span class="s5">)*</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source</span><span class="s5">)) {</span>
+            <span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">[</span><span class="s1">i</span><span class="s5">++] = </span><span class="s1">nextPos</span><span class="s5">(</span><span class="s1">lxpos</span><span class="s5">);</span>
+            <span class="s4">if </span><span class="s5">(</span><span class="s1">i </span><span class="s5">== </span><span class="s6">99</span><span class="s5">) {</span>
+                <span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">[</span><span class="s1">i</span><span class="s5">] = </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">;</span>
+                <span class="s1">token</span><span class="s5">.</span><span class="s1">tType </span><span class="s5">= </span><span class="s1">TokenTooLong</span><span class="s5">;</span>
+                <span class="s4">while </span><span class="s5">(*</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source </span><span class="s5">&amp;&amp; </span><span class="s1">isdigit</span><span class="s5">((</span><span class="s4">unsigned char</span><span class="s5">) *</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source</span><span class="s5">)) {</span>
+                    <span class="s1">nextPos</span><span class="s5">(</span><span class="s1">lxpos</span><span class="s5">);</span>
+                <span class="s5">}</span>
+                <span class="s4">return </span><span class="s1">token</span><span class="s5">;</span>
+            <span class="s5">}</span>
+        <span class="s5">}</span>
+
+        <span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">[</span><span class="s1">i</span><span class="s5">] = </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">;</span>
+        <span class="s1">token</span><span class="s5">.</span><span class="s1">tType </span><span class="s5">= </span><span class="s1">TokenLiteral</span><span class="s5">;</span>
+        <span class="s4">return </span><span class="s1">token</span><span class="s5">;</span>
+    <span class="s5">}</span>
+
+    <span class="s3">// if the character being read is an alphabet or underscore character, calls the while loop to read the rest of the</span>
+    <span class="s3">// word then sets the sequence to a TokenIdentifier. Then the for loop checks if these identifiers are keywords</span>
+    <span class="s3">// or not from the previously defined character array</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">isalpha</span><span class="s5">((</span><span class="s4">unsigned char</span><span class="s5">)*</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source</span><span class="s5">) || *</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source </span><span class="s5">== </span><span class="s2">'_'</span><span class="s5">) {</span>
+
+        <span class="s4">int </span><span class="s1">i </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+
+        <span class="s3">// while loops until next character is not an alphanumeric or an underscore</span>
+        <span class="s3">// or index == 99. If index is 99, then the input is too long. Skips over rest</span>
+        <span class="s3">// of the input and returns a TokenTooLong</span>
+        <span class="s4">while </span><span class="s5">(</span><span class="s1">isalnum</span><span class="s5">((</span><span class="s4">unsigned char</span><span class="s5">)*</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source</span><span class="s5">) || *</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source </span><span class="s5">== </span><span class="s2">'_'</span><span class="s5">) {</span>
+            <span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">[</span><span class="s1">i</span><span class="s5">++] = </span><span class="s1">nextPos</span><span class="s5">(</span><span class="s1">lxpos</span><span class="s5">);</span>
+            <span class="s4">if </span><span class="s5">(</span><span class="s1">i </span><span class="s5">== </span><span class="s6">99</span><span class="s5">) {</span>
+                <span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">[</span><span class="s1">i</span><span class="s5">] = </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">;</span>
+                <span class="s1">token</span><span class="s5">.</span><span class="s1">tType </span><span class="s5">= </span><span class="s1">TokenTooLong</span><span class="s5">;</span>
+                <span class="s4">while </span><span class="s5">(</span><span class="s1">isalnum</span><span class="s5">((</span><span class="s4">unsigned char</span><span class="s5">)*</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source</span><span class="s5">) || *</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source </span><span class="s5">== </span><span class="s2">'_'</span><span class="s5">) {</span>
+                    <span class="s1">nextPos</span><span class="s5">(</span><span class="s1">lxpos</span><span class="s5">);</span>
+                <span class="s5">}</span>
+                <span class="s4">return </span><span class="s1">token</span><span class="s5">;</span>
+            <span class="s5">}</span>
+        <span class="s5">}</span>
+
+        <span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">[</span><span class="s1">i</span><span class="s5">] = </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">;</span>
+        <span class="s1">token</span><span class="s5">.</span><span class="s1">tType </span><span class="s5">= </span><span class="s1">TokenIdentifier</span><span class="s5">;</span>
+
+        <span class="s3">// checks the keywords array to see if the TokenIdentifier matches any keywords,</span>
+        <span class="s3">// if so, sets this to TokenKeyword instead of TokenIdentifier</span>
+        <span class="s3">// keyword array is length 8, hence for loop up to 8</span>
+        <span class="s4">for </span><span class="s5">(</span><span class="s4">int </span><span class="s1">a </span><span class="s5">= </span><span class="s6">0</span><span class="s5">; </span><span class="s1">a </span><span class="s5">&lt; </span><span class="s6">8</span><span class="s5">; </span><span class="s1">a</span><span class="s5">++) {</span>
+            <span class="s4">if </span><span class="s5">(</span><span class="s1">strcmp</span><span class="s5">(</span><span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">, </span><span class="s1">keywords</span><span class="s5">[</span><span class="s1">a</span><span class="s5">]) == </span><span class="s6">0</span><span class="s5">) {</span>
+                <span class="s1">token</span><span class="s5">.</span><span class="s1">tType </span><span class="s5">= </span><span class="s1">TokenKeyword</span><span class="s5">;</span>
+                <span class="s4">break</span><span class="s5">;</span>
+            <span class="s5">}</span>
+        <span class="s5">}</span>
+        <span class="s4">return </span><span class="s1">token</span><span class="s5">;</span>
+    <span class="s5">}</span>
+
+    <span class="s3">// if the character being read is a delimiter, returns a TokenDelimiter</span>
+    <span class="s3">// this is done by comparing is to the previously defined character array containing</span>
+    <span class="s3">// the delimiters in the language</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">strchr</span><span class="s5">(</span><span class="s1">delimiters</span><span class="s5">, *</span><span class="s1">lxpos</span><span class="s5">-&gt;</span><span class="s1">source</span><span class="s5">)) {</span>
+
+        <span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">[</span><span class="s6">0</span><span class="s5">] = </span><span class="s1">nextPos</span><span class="s5">(</span><span class="s1">lxpos</span><span class="s5">);</span>
+        <span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">[</span><span class="s6">1</span><span class="s5">] = </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">;</span>
+        <span class="s1">token</span><span class="s5">.</span><span class="s1">tType </span><span class="s5">= </span><span class="s1">TokenDelimiter</span><span class="s5">;</span>
+        <span class="s4">return </span><span class="s1">token</span><span class="s5">;</span>
+    <span class="s5">}</span>
+
+    <span class="s3">// if no tokens have been returned, automatically returns a TokenUnknown</span>
+    <span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">[</span><span class="s6">0</span><span class="s5">] = </span><span class="s1">nextPos</span><span class="s5">(</span><span class="s1">lxpos</span><span class="s5">);</span>
+    <span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">[</span><span class="s6">1</span><span class="s5">] = </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">;</span>
+    <span class="s1">token</span><span class="s5">.</span><span class="s1">tType </span><span class="s5">= </span><span class="s1">TokenUnknown</span><span class="s5">;</span>
+    <span class="s4">return </span><span class="s1">token</span><span class="s5">;</span>
+<span class="s5">}</span>
+
+    <span class="s3">// the main method that calls all the methods above</span>
+    <span class="s4">int </span><span class="s1">main</span><span class="s5">(</span><span class="s4">int </span><span class="s1">argc</span><span class="s5">, </span><span class="s4">char </span><span class="s5">*</span><span class="s1">argv</span><span class="s5">[]) {</span>
+
+    <span class="s3">// reads a file provided in the arguments and sees how big it is,</span>
+    <span class="s3">// creates space for it, then reads it into finalSource</span>
+    <span class="s1">FILE </span><span class="s5">*</span><span class="s1">testcode </span><span class="s5">= </span><span class="s1">fopen</span><span class="s5">(</span><span class="s1">argv</span><span class="s5">[</span><span class="s6">1</span><span class="s5">], </span><span class="s2">&quot;rb&quot;</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(!</span><span class="s1">testcode</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s2">&quot;Error opening file</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">);</span>
+    <span class="s5">}</span>
+
+    <span class="s1">fseek</span><span class="s5">(</span><span class="s1">testcode</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s1">SEEK_END</span><span class="s5">);</span>
+    <span class="s4">int </span><span class="s1">size </span><span class="s5">= </span><span class="s1">ftell</span><span class="s5">(</span><span class="s1">testcode</span><span class="s5">);</span>
+    <span class="s1">rewind</span><span class="s5">(</span><span class="s1">testcode</span><span class="s5">);</span>
+    <span class="s4">char </span><span class="s5">*</span><span class="s1">finalSource </span><span class="s5">= </span><span class="s1">malloc</span><span class="s5">(</span><span class="s1">size </span><span class="s5">+ </span><span class="s6">1</span><span class="s5">);</span>
+    <span class="s1">fread</span><span class="s5">(</span><span class="s1">finalSource</span><span class="s5">, </span><span class="s6">1</span><span class="s5">, </span><span class="s1">size</span><span class="s5">, </span><span class="s1">testcode</span><span class="s5">);</span>
+    <span class="s3">// finalSource[size] used to find the end of file</span>
+    <span class="s1">finalSource</span><span class="s5">[</span><span class="s1">size</span><span class="s5">] = </span><span class="s2">'</span><span class="s4">\0</span><span class="s2">'</span><span class="s5">;</span>
+    <span class="s1">fclose</span><span class="s5">(</span><span class="s1">testcode</span><span class="s5">);</span>
+
+    <span class="s3">// Goes to the beginning of the file ready to read</span>
+    <span class="s1">LexorPos lxpos </span><span class="s5">= {</span>
+        <span class="s5">.</span><span class="s1">source </span><span class="s5">= </span><span class="s1">finalSource</span><span class="s5">,</span>
+        <span class="s5">.</span><span class="s1">row </span><span class="s5">= </span><span class="s6">1</span><span class="s5">,</span>
+        <span class="s5">.</span><span class="s1">column </span><span class="s5">= </span><span class="s6">1</span>
+    <span class="s5">};</span>
+
+    <span class="s1">Token token</span><span class="s5">;</span>
+
+    <span class="s3">// a do-while loop that constantly calls NextToken, gets the token type, then prints it</span>
+    <span class="s3">// loop stops when a TokenEnd is returned signalling the end of the file</span>
+    <span class="s3">// do-while is used to ensure at least one line is printed</span>
+    <span class="s3">// (in case of empty file the TokenEnd is printed)</span>
+    <span class="s4">do </span><span class="s5">{</span>
+        <span class="s1">token </span><span class="s5">= </span><span class="s1">NextToken</span><span class="s5">(&amp;</span><span class="s1">lxpos</span><span class="s5">);</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s2">&quot;%-20s %-20s row %-20d column %d</span><span class="s4">\n</span><span class="s2">&quot;</span><span class="s5">,</span>
+            <span class="s1">token</span><span class="s5">.</span><span class="s1">lex</span><span class="s5">,</span>
+            <span class="s1">TokenName</span><span class="s5">(</span><span class="s1">token</span><span class="s5">.</span><span class="s1">tType</span><span class="s5">),</span>
+            <span class="s1">token</span><span class="s5">.</span><span class="s1">row</span><span class="s5">,</span>
+            <span class="s1">token</span><span class="s5">.</span><span class="s1">column</span><span class="s5">);</span>
+
+    <span class="s5">} </span><span class="s4">while </span><span class="s5">(</span><span class="s1">token</span><span class="s5">.</span><span class="s1">tType </span><span class="s5">!= </span><span class="s1">TokenEnd</span><span class="s5">);</span>
+
+    <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+<span class="s5">}</span></pre>
+</body>
+</html>

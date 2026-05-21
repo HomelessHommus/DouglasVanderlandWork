@@ -27,7 +27,7 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 6,
+				"line" : 7,
 				"parent" : 0
 			}
 		]
@@ -38,7 +38,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-g -std=gnu99 -fdiagnostics-color=always"
+					"fragment" : " -Os -s -g -std=gnu99 -fdiagnostics-color=always"
 				}
 			],
 			"language" : "C",
@@ -62,7 +62,7 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "-g",
+				"fragment" : "-Os -s -g",
 				"role" : "flags"
 			},
 			{

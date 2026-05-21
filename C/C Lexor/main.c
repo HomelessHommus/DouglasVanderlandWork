@@ -3,11 +3,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Douglas Vanderland
+// vand0475
+
 // MUST INCLUDE
 // set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -s")
 // in the CMakeLists.txt to get the executable to under 50KB
 
-// grouping together a list of possible token tpyes called "TokenType"
+// FOR THE PROGRAM TO WORK, MUST HAVE 2 ARGUMENTS
+// 1ST FOR INPUT FILE, 2ND FOR OUTPUT FILE. WILL NOT WORK WITHOUT THESE
+// EXAMPLE: "C:\Users\Doug\Desktop\input.txt" "C:\Users\Doug\Desktop\output.txt"
+// FOUND IN Configuration -> Edit... -> Program Arguments
+// :)
+
+// grouping together a list of possible token types called "TokenType"
 typedef enum {
     TokenKeyword,
     TokenIdentifier,
@@ -18,7 +27,7 @@ typedef enum {
     TokenTooLong
 } TokenType;
 
-// switch statement to return the type of token to then print it
+// a switch statement to return the type of token to then print it
 char *TokenName(TokenType tok) {
     switch (tok) {
         case TokenKeyword:
@@ -61,7 +70,8 @@ typedef struct {
 char *keywords[] = {"int", "char", "if", "else", "while", "for", "do", "return"};
 char delimiters[] = ";,(){}[]";
 
-// Moves the head of the turing machine to the next character in the string
+// Moves to the next position in the character sequence
+// Mainly used to read a whole word or digit >9 to be analysed for a token type
 static char nextPos(LexorPos *lxpos) {
     char c = *lxpos->source++;
     if (c == '\n') {
@@ -74,7 +84,7 @@ static char nextPos(LexorPos *lxpos) {
     return c;
 }
 
-// A function that scans the character/s and processes the token
+// A function that calls the next token to be read and where the if statements are located
 Token NextToken(LexorPos *lxpos) {
 
     Token token;
@@ -88,22 +98,22 @@ Token NextToken(LexorPos *lxpos) {
     token.row = lxpos->row;
     token.column = lxpos->column;
 
-
-    // if the turing machine head is at the end of the file return a TokenEnd token
+    // If the current character is null, a TokenEnd is returned to signify the end of the file
     if (*lxpos->source == '\0') {
+
         token.lex[0] = '\0';
         token.tType = TokenEnd;
         return token;
     }
 
-    // if the turing machine head is at a digit, calls nextPos to get whole digit string,
+    // if the character being read is a digit, calls nextPos to get whole digit string,
     // then returns whole thing as TokenLiteral token
     if (isdigit((unsigned char)*lxpos->source)) {
 
         int i = 0;
 
         // while loops until next position is not a digit, or index == 99
-        // if index is 99, then the input is too long. Skips over rest if the input
+        // if index is 99, then the input is too long. Skips over rest of the input
         while (isdigit((unsigned char)*lxpos->source)) {
             token.lex[i++] = nextPos(lxpos);
             if (i == 99) {
@@ -121,14 +131,16 @@ Token NextToken(LexorPos *lxpos) {
         return token;
     }
 
-    // if the turing machine head detects an identifier string, sets a TokenIdentifier token,
-    // then checks if these identifiers are keywords or not
+    // if the character being read is an alphabet or underscore character, calls the while loop to read the rest of the
+    // word then sets the sequence to a TokenIdentifier. Then the for loop checks if these identifiers are keywords
+    // or not from the previously defined character array
     if (isalpha((unsigned char)*lxpos->source) || *lxpos->source == '_') {
 
         int i = 0;
 
-        // while loops until next character is not an alphanumeric or and underscore
-        // or index == 9. If index is 99, then the input is too long. Skips over rest if the input
+        // while loops until next character is not an alphanumeric or an underscore
+        // or index == 99. If index is 99, then the input is too long. Skips over rest
+        // of the input and returns a TokenTooLong
         while (isalnum((unsigned char)*lxpos->source) || *lxpos->source == '_') {
             token.lex[i++] = nextPos(lxpos);
             if (i == 99) {
@@ -156,7 +168,9 @@ Token NextToken(LexorPos *lxpos) {
         return token;
     }
 
-    // if the turing machine head is a character from the delimiter rules, returns a TokenDelimiter
+    // if the character being read is a delimiter, returns a TokenDelimiter
+    // this is done by comparing is to the previously defined character array containing
+    // the delimiters in the language
     if (strchr(delimiters, *lxpos->source)) {
 
         token.lex[0] = nextPos(lxpos);
@@ -172,23 +186,32 @@ Token NextToken(LexorPos *lxpos) {
     return token;
 }
 
+    // the main method that calls all the methods above
     int main(int argc, char *argv[]) {
 
-    // reads a file provided in the arguments and sees how big it is,
-    // creates space for it, then reads it into finalSource
-    FILE *testcode = fopen(argv[1], "rb");
-    if (!testcode) {
-        printf("Error opening file\n");
+    // read 2 files. 1 for input and 1 for output
+    FILE *input = fopen(argv[1], "rb");
+    if (!input) {
+        printf("Error opening input file\n");
+        return 1;
     }
-    fseek(testcode, 0, SEEK_END);
-    int size = ftell(testcode);
-    rewind(testcode);
-    char *finalSource = malloc(size + 1);
-    fread(finalSource, 1, size, testcode);
-    finalSource[size] = '\0';
-    fclose(testcode);
+    FILE *output = fopen(argv[2], "w");
+    if(!output) {
+        printf("Error opening output file\n");
+        return 1;
+    }
 
-    // Sets the turing head position at the start of the file ready to read
+    // sees how big the input file is and allocates enough memory for it
+    fseek(input, 0, SEEK_END);
+    int size = ftell(input);
+    rewind(input);
+    char *finalSource = malloc(size + 1);
+    fread(finalSource, 1, size, input);
+    // finalSource[size] used to find the end of file
+    finalSource[size] = '\0';
+    fclose(input);
+
+    // Goes to the beginning of the file ready to read
     LexorPos lxpos = {
         .source = finalSource,
         .row = 1,
@@ -197,8 +220,11 @@ Token NextToken(LexorPos *lxpos) {
 
     Token token;
 
-    // a do-while loop that constantly calls NextToken on a Token variable, then prints it
+    // a do-while loop that constantly calls NextToken, gets the token type, then prints it
+    // printed to both the console and to the output file
     // loop stops when a TokenEnd is returned signalling the end of the file
+    // do-while is used to ensure at least one line is printed
+    // (in case of empty file the TokenEnd is printed)
     do {
         token = NextToken(&lxpos);
         printf("%-20s %-20s row %-20d column %d\n",
@@ -206,8 +232,15 @@ Token NextToken(LexorPos *lxpos) {
             TokenName(token.tType),
             token.row,
             token.column);
+        fprintf(output, "%-20s %-20s row %-20d column %d\n",
+            token.lex,
+            TokenName(token.tType),
+            token.row,
+            token.column);
 
     } while (token.tType != TokenEnd);
+
+    fclose(output);
 
     return 0;
 }

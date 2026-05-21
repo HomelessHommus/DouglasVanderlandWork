@@ -52,7 +52,7 @@ public class GraphBuilder {
                 }
             }
         }
-        System.out.println(g.startingMap);
+        System.out.println("HashMap Built!");
         return g;
     }
 }

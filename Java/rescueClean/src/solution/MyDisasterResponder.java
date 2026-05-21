@@ -51,7 +51,7 @@ public class MyDisasterResponder extends DisasterResponder {
             Building = current.Building;
             Distance = current.totalDistance;
 
-            if (Building == endBuilding) {
+            if (Objects.equals(Building, endBuilding)) {
                 break;
             }
 
@@ -67,7 +67,7 @@ public class MyDisasterResponder extends DisasterResponder {
 
             for (Road road : roads) {
                 if (road.getAccess().equals("open")) {
-                    if (graph.startingMap.containsKey(road.getDestination())) {
+                    if (graph.getStartingMap().containsKey(road.getDestination())) {
 
                         nextBuilding = road.getDestination();
                         newDistance = Distance + road.getCost();
@@ -124,18 +124,18 @@ public class MyDisasterResponder extends DisasterResponder {
 
             case "ROAD":
                 if (handlingMessage[6].equals("BLOCKED")){
-                    if (graph.startingMap.containsKey(parseLong(handlingMessage[2]))) {
+                    if (graph.getStartingMap().containsKey(parseLong(handlingMessage[2]))) {
                         graph.removeRoad (parseLong(handlingMessage[2]), parseLong(handlingMessage[4]), handlingMessage[6]);
                         System.out.println("Road from " +  handlingMessage[2] + " to " + handlingMessage[4] + " has been blocked");
                     }
-                    if (graph.startingMap.containsKey(parseLong(handlingMessage[4]))) {
+                    if (graph.getStartingMap().containsKey(parseLong(handlingMessage[4]))) {
                         graph.removeRoad(parseLong(handlingMessage[4]), parseLong(handlingMessage[2]), handlingMessage[6]);
                     }
                 }
                 break;
 
             case "LOCATION":
-                if (graph.startingMap.containsKey(parseLong(handlingMessage[1]))) {
+                if (graph.getStartingMap().containsKey(parseLong(handlingMessage[1]))) {
                     graph.removeBuilding(parseLong(handlingMessage[1]));
                     System.out.println("Building " + parseInt(handlingMessage[1]) + " removed");
                 }
@@ -165,6 +165,7 @@ public class MyDisasterResponder extends DisasterResponder {
                 break;
 
             case "PEOPLE_TRANSFERRED":
+                availableVehicles.get(parseInt(handlingMessage[4])).setFinalDestination(origin);
                 break;
 
             case "ERROR":
@@ -178,6 +179,7 @@ public class MyDisasterResponder extends DisasterResponder {
     @Override
     protected void setup() throws IOException, JDOMException {
         String filename = ConfigurationInfo.getMapFile(configFile);
+        PathFinding pf =  new PathFinding(GraphBuilder.buildFromGraphML(filename));
         origin = ConfigurationInfo.getOrigin(configFile);
         graph = GraphBuilder.buildFromGraphML(filename);
         for (int i = 1; i <= ConfigurationInfo.NUMBER_OF_VEHICLES; i++) {

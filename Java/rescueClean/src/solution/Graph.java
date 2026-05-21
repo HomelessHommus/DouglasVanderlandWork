@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class Graph {
 
-    HashMap<Long, List<Road>> startingMap = new HashMap<>();
+    private HashMap<Long, List<Road>> startingMap = new HashMap<>();
 
     public void addBuilding (long i) {
         startingMap.putIfAbsent(i, new ArrayList<>());
