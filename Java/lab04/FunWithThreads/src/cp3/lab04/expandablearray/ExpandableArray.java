@@ -15,12 +15,11 @@ import java.util.concurrent.Executors;
  * A conflict could occur if, e.g., two threads tried to perform an add()
  * operation at the same time.
  */
-public class ExpandableArray extends Thread
+public class ExpandableArray
 {
 
     private Object[] data;
     private int size = 0;
-    ExecutorService executor = Executors.newFixedThreadPool(10);
 
     /**
      * Initialize the array with an initial capacity of <code>cap</code>.
@@ -64,7 +63,6 @@ public class ExpandableArray extends Thread
      */
     public void add(Object x)
     {
-         executor.submit(()->{
             if (size == data.length) // too small
             {
                 Object[] od = data;
@@ -73,9 +71,6 @@ public class ExpandableArray extends Thread
                 System.arraycopy(od, 0, data, 0, od.length);
             }
             data[size++] = x;
-         });
-
-
     }
 
     /**

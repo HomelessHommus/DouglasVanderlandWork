@@ -12,13 +12,17 @@ public class ExpandableArrayDriver
     public static void main(String[] args) throws InterruptedException
     {
         ExpandableArray ea = new ExpandableArray(1);
+        MyExpandableArray newEa = new MyExpandableArray(ea);
 
         System.out.println("size: " + ea.size());
 
         for (int i = 0; i < 10; i++)
         {
-            ea.add(new Integer(i));
+//            ea.add(new Integer(i));
+            newEa.addWithThreads(new Integer(i));
         }
+
+        newEa.allThreadGo();
 
 
         System.out.println("size: " + ea.size());
