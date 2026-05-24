@@ -16,6 +16,7 @@ public class MyDisasterResponder extends DisasterResponder {
     String origin;
     Graph graph = new Graph();
     HashMap<Integer, VehicleTracker> availableVehicles = new HashMap<>();
+    PathFinding pathFinding;
 
     // queue for the path finding messages
     BlockingQueue<String> PathFindingQueue = new LinkedBlockingQueue<>();
@@ -24,7 +25,7 @@ public class MyDisasterResponder extends DisasterResponder {
     HashMap<Long, Double> totalDistance = new HashMap<>();
     HashMap<Long, Long> previous = new HashMap<>();
     List<Long> printingPath = new ArrayList<>();
-    PriorityQueue<CurrentLocation> PQ = new PriorityQueue<>(Comparator.comparingLong(o -> (int) o.totalDistance));
+    PriorityQueue<CurrentLocation> PQ = new PriorityQueue<>(Comparator.comparingDouble(o -> o.totalDistance));
     Long Building;
     double Distance;
     double newDistance;
@@ -39,7 +40,7 @@ public class MyDisasterResponder extends DisasterResponder {
         PQ.clear();
 
         for(Long key : graph.getStartingMap().keySet()) {
-            totalDistance.put(key, 1000000.0);
+            totalDistance.put(key, Double.MAX_VALUE);
         }
 
         totalDistance.put(startBuilding, (double) 0);
@@ -50,6 +51,10 @@ public class MyDisasterResponder extends DisasterResponder {
             CurrentLocation current = PQ.poll();
             Building = current.Building;
             Distance = current.totalDistance;
+
+            if (Distance == Double.MAX_VALUE) {
+                continue;
+            }
 
             if (Objects.equals(Building, endBuilding)) {
                 break;
@@ -72,7 +77,7 @@ public class MyDisasterResponder extends DisasterResponder {
                         nextBuilding = road.getDestination();
                         newDistance = Distance + road.getCost();
 
-                        if (newDistance < totalDistance.getOrDefault(nextBuilding, 1000000.0)) {
+                        if (newDistance < totalDistance.getOrDefault(nextBuilding, Double.MAX_VALUE)) {
                             totalDistance.put(nextBuilding, newDistance);
                             previous.put(nextBuilding, Building);
                             PQ.add(new CurrentLocation(nextBuilding, newDistance));
@@ -109,7 +114,7 @@ public class MyDisasterResponder extends DisasterResponder {
 
         switch (handlingMessage[0]) {
             case "RESCUE":
-                Integer vehicleToUse = null;
+                Integer vehicleToUse = 0;
                 for (Integer key : availableVehicles.keySet()) {
                     if (!availableVehicles.get(key).getInUse()) {
                         vehicleToUse = key;
@@ -119,6 +124,7 @@ public class MyDisasterResponder extends DisasterResponder {
                 }
                 rescueMessage = origin + " " + handlingMessage[2] + " " + vehicleToUse;
                 availableVehicles.get(vehicleToUse).setFinalDestination(handlingMessage[2]);
+                availableVehicles.get(vehicleToUse).setStartDestination(origin);
                 PathFindingQueue.add(rescueMessage);
                 break;
 
@@ -165,6 +171,7 @@ public class MyDisasterResponder extends DisasterResponder {
                 break;
 
             case "PEOPLE_TRANSFERRED":
+                availableVehicles.get(parseInt(handlingMessage[4])).setStartDestination(availableVehicles.get(parseInt(handlingMessage[4])).getFinalDestination());
                 availableVehicles.get(parseInt(handlingMessage[4])).setFinalDestination(origin);
                 break;
 
@@ -178,11 +185,13 @@ public class MyDisasterResponder extends DisasterResponder {
 
     @Override
     protected void setup() throws IOException, JDOMException {
+
         String filename = ConfigurationInfo.getMapFile(configFile);
-        PathFinding pf =  new PathFinding(GraphBuilder.buildFromGraphML(filename));
         origin = ConfigurationInfo.getOrigin(configFile);
         graph = GraphBuilder.buildFromGraphML(filename);
-        for (int i = 1; i <= ConfigurationInfo.NUMBER_OF_VEHICLES; i++) {
+        pathFinding = new PathFinding(graph);
+
+        for (int i = 1; i < ConfigurationInfo.NUMBER_OF_VEHICLES; i++) {
             availableVehicles.put(i, new VehicleTracker(i));
         }
         executor.submit(() -> {

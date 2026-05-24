@@ -1,6 +1,9 @@
 package cp3.lab04.crypt;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author A daring CP3 student!
@@ -13,19 +16,54 @@ public class JCrypt {
      */
     public static void main(String[] args) {
 
+
+
         JCryptUtil.Options opts = JCryptUtil.parseOptions(args);
+
+        System.out.println("Threads: " + opts.threads);
+        System.out.println("Num of Files: " + opts.filenames.length);
 
         long starttime = System.nanoTime();
 
         // ---
 
-        try {
-            for (int i = 0; i < opts.filenames.length; i++) {
-                process(opts, i);
+        List<Thread> threadsList = new ArrayList<Thread>();
+
+        if(opts.threads <= 0) {
+
+                for (int i = 0; i < opts.filenames.length; i++) {
+                    Thread thread = new JCryptWThreads(opts, i);
+                    threadsList.add(thread);
+                    thread.start();
+//                process(opts, i);
+                }
+        }
+        else {
+            AtomicInteger i = new AtomicInteger(0);
+            int Threads = Math.min(opts.threads, opts.filenames.length);
+
+                for (int j = 0; j < Threads; j++) {
+                    Thread thread = new JCryptWThreads(opts, i);
+                    threadsList.add(thread);
+                    thread.start();
+                }
+        }
+
+//        try {
+
+
+//        } catch (JCryptUtil.Problem e) {
+//            System.err.println("ERROR: " + e.getMessage());
+//            System.exit(2);
+//        }
+
+        for (Thread thread : threadsList) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.err.println(e.getMessage());
             }
-        } catch (JCryptUtil.Problem e) {
-            System.err.println("ERROR: " + e.getMessage());
-            System.exit(2);
         }
 
         // ---
@@ -46,6 +84,11 @@ public class JCrypt {
             System.out.println("Decrypting "+opts.filenames[index]);
             JCryptUtil.EncryptedData encryptedText = JCryptUtil.readEncryptedFile(opts.filenames[index]);
             decryptedText = JCryptUtil.decrypt(opts.decryptionPassword, encryptedText);
+//            try {
+//                Thread.sleep(2000);
+//            } catch (InterruptedException e) {
+//                Thread.currentThread().interrupt();
+//            }
         } else if (opts.crack) { // option requests file to be cracked
             System.out.println("Cracking " + opts.filenames[index]);
             JCryptUtil.EncryptedData encryptedText = JCryptUtil.readEncryptedFile(opts.filenames[index]);
@@ -91,3 +134,16 @@ public class JCrypt {
     }
 
 }
+
+// PART L4.3
+//-d
+//        enigma
+//-s
+//"M:\Github Repos\DouglasVanderlandWork\Java\lab04\FunWithThreads\prac4-secrets\classified.jpg.encrypted"
+//        "M:\Github Repos\DouglasVanderlandWork\Java\lab04\FunWithThreads\prac4-secrets\confidential.jpg.encrypted"
+//        "M:\Github Repos\DouglasVanderlandWork\Java\lab04\FunWithThreads\prac4-secrets\dangerous.jpg.encrypted"
+//        "M:\Github Repos\DouglasVanderlandWork\Java\lab04\FunWithThreads\prac4-secrets\hushhush.jpg.encrypted"
+//        "M:\Github Repos\DouglasVanderlandWork\Java\lab04\FunWithThreads\prac4-secrets\illegal.jpg.encrypted"
+//        "M:\Github Repos\DouglasVanderlandWork\Java\lab04\FunWithThreads\prac4-secrets\private.jpg.encrypted"
+//        "M:\Github Repos\DouglasVanderlandWork\Java\lab04\FunWithThreads\prac4-secrets\restricted.jpg.encrypted"
+//        "M:\Github Repos\DouglasVanderlandWork\Java\lab04\FunWithThreads\prac4-secrets\topsecret.jpg.encrypted"

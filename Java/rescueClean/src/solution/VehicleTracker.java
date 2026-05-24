@@ -4,6 +4,7 @@ public class VehicleTracker {
 
     private int id;
     private String finalDestination;
+    private String startDestination;
     private boolean inUse =  false;
 
     public VehicleTracker(int id) {
@@ -21,6 +22,12 @@ public class VehicleTracker {
     }
     public void setFinalDestination(String finalDestination) {
         this.finalDestination = finalDestination;
+    }
+    public String getStartDestination() {
+        return startDestination;
+    }
+    public void setStartDestination(String startDestination) {
+        this.startDestination = startDestination;
     }
     public boolean getInUse() {
         return inUse;
