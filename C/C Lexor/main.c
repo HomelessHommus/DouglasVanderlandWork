@@ -67,7 +67,8 @@ typedef struct {
 } LexorPos;
 
 // 2 lists that can be looped over to make it easier to find matches
-char *keywords[] = {"int", "char", "if", "else", "while", "for", "do", "return"};
+char *keywords[] = {"int", "char", "if", "else", "while", "for", "do", "return", "class",
+                    "public", "private", "protected", "new", "delete"};
 char delimiters[] = ";,(){}[]";
 
 // Moves to the next position in the character sequence
@@ -159,7 +160,7 @@ Token NextToken(LexorPos *lxpos) {
         // checks the keywords array to see if the TokenIdentifier matches any keywords,
         // if so, sets this to TokenKeyword instead of TokenIdentifier
         // keyword array is length 8, hence for loop up to 8
-        for (int a = 0; a < 8; a++) {
+        for (int a = 0; a < 14; a++) {
             if (strcmp(token.lex, keywords[a]) == 0) {
                 token.tType = TokenKeyword;
                 break;
