@@ -27,7 +27,7 @@ public abstract class DisasterResponder  {
 
     abstract protected void handle(Message s);
 
-    abstract protected void setup() throws IOException, JDOMException;
+    abstract protected void setup();
 
     public final void start(String configFile) throws IOException, JDOMException {
         this.configFile = configFile;

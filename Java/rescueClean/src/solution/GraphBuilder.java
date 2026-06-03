@@ -49,7 +49,6 @@ public class GraphBuilder {
                 if (d.getAttribute("key").getValue().equals("d1")) {
                     double dist = Double.parseDouble(d.getText());
                     g.addRoad(nS, nD, dist);
-                    g.addRoad(nD, nS, dist);
                 }
             }
         }

@@ -69,7 +69,7 @@ typedef struct {
 // 2 lists that can be looped over to make it easier to find matches
 char *keywords[] = {"int", "char", "if", "else", "while", "for", "do", "return", "class",
                     "public", "private", "protected", "new", "delete"};
-char delimiters[] = ";,(){}[]";
+char delimiters[] = ";,(){}[]:";
 
 // Moves to the next position in the character sequence
 // Mainly used to read a whole word or digit >9 to be analysed for a token type
