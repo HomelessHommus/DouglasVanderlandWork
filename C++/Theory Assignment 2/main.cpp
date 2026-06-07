@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <string>
 #include <vector>
 #include <map>
@@ -10,11 +9,9 @@
 #include <stdexcept>
 #include <algorithm>
 #include <memory>
- 
-// ═══════════════════════════════════════════════════════════════════
-//  TOKENS
-// ═══════════════════════════════════════════════════════════════════
- 
+
+// an enum class of tokens. The delimiters and keywords have been split up so the SLR parser can tell the
+// difference between them
 enum class Tokens {
     INT,
     CHAR,
@@ -44,79 +41,81 @@ enum class Tokens {
     ENDOFFILE,
     UNKNOWN
 };
- 
-std::string tname(Tokens input) {
+
+// used to print the token from the lexor in the parser tree
+std::string tokenName(Tokens input) {
     switch (input) {
         case Tokens::INT:
-            return "TokenKeyword(int)";
+            return "Keyword";
         case Tokens::CHAR:
-            return "TokenKeyword(char)";
+            return "Keyword";
         case Tokens::IF:
-            return "TokenKeyword(if)";
+            return "Keyword";
         case Tokens::ELSE:
-            return "TokenKeyword(else)";
+            return "Keyword";
         case Tokens::WHILE:
-            return "TokenKeyword(while)";
+            return "Keyword";
         case Tokens::FOR:
-            return "TokenKeyword(for)";
+            return "Keyword";
         case Tokens::DO:
-            return "TokenKeyword(do)";
+            return "Keyword";
         case Tokens::RETURN:
-            return "TokenKeyword(return)";
+            return "Keyword";
         case Tokens::CLASS:
-            return "TokenKeyword(class)";
+            return "Keyword";
         case Tokens::PUBLIC:
-            return "TokenKeyword(public)";
+            return "Keyword";
         case Tokens::PRIVATE:
-            return "TokenKeyword(private)";
+            return "Keyword";
         case Tokens::PROTECTED:
-            return "TokenKeyword(protected)";
+            return "Keyword";
         case Tokens::NEW:
-            return "TokenKeyword(new)";
+            return "Keyword";
         case Tokens::DELETE:
-            return "TokenKeyword(delete)";
+            return "Keyword";
         case Tokens::IDENTIFIER:
-            return "TokenIdentifier";
+            return "Identifier";
         case Tokens::LITERAL:
-            return "TokenLiteral";
+            return "Literal";
         case Tokens::SEMICOLON:
-            return ";";
+            return "Delimiter";
         case Tokens::COMMA:
-            return ",";
+            return "Delimiter";
         case Tokens::LEFTBRACKET:
-            return "(";
+            return "Delimiter";
         case Tokens::RIGHTBRACKET:
-            return ")";
+            return "Delimiter";
         case Tokens::LEFTSQUAREBRACKET:
-            return "[";
+            return "Delimiter";
         case Tokens::RIGHTSQUAREBRACKET:
-            return "]";
+            return "Delimiter";
         case Tokens::LEFTCURLYBRACKET:
-            return "{";
+            return "Delimiter";
         case Tokens::RIGHTCURLYBRACKET:
-            return "}";
+            return "Delimiter";
         case Tokens::COLON:
-            return ":";
+            return "Delimiter";
         case Tokens::ENDOFFILE:
             return "$";
         default:
-            return "?";
+            return "unknown token";
     }
 }
- 
-struct Token { Tokens type; std::string lex; int row, col; };
- 
-// ═══════════════════════════════════════════════════════════════════
-//  READ LEXER OUTPUT FILE
-//  Format: %-20s %-20s row %-20d column %d
-// ═══════════════════════════════════════════════════════════════════
- 
-std::vector<Token> readLexerFile(const std::string& path) {
-    std::ifstream f(path);
-    if (!f) throw std::runtime_error("Cannot open: " + path);
- 
-    // keyword/delimiter string → T
-    std::map<std::string,Tokens> kw = {
+
+// A struct of name Token to hold info about it
+struct Token {
+    Tokens type;
+    std::string lex;
+    int row;
+    int column;
+};
+
+// a method to read in the output from the lexor
+std::vector<Token> readLexerFile(const std::string& lexorOutput) {
+    std::ifstream lexorStream(lexorOutput);
+
+    // map of the defined keywords
+    std::map<std::string,Tokens> keywords = {
         {"int",Tokens::INT},
         {"char",Tokens::CHAR},
         {"if",Tokens::IF},
@@ -132,7 +131,9 @@ std::vector<Token> readLexerFile(const std::string& path) {
         {"new",Tokens::NEW},
         {"delete",Tokens::DELETE}
     };
-    std::map<std::string,Tokens> delim = {
+
+    // map of the defined delimiters
+    std::map<std::string,Tokens> delimiters = {
         {";",Tokens::SEMICOLON},
         {",",Tokens::COMMA},
         {"(",Tokens::LEFTBRACKET},
@@ -143,441 +144,556 @@ std::vector<Token> readLexerFile(const std::string& path) {
         {"}",Tokens::RIGHTCURLYBRACKET},
         {":",Tokens::COLON}
     };
- 
-    auto rtrim = [](std::string s) {
-        auto p = s.find_last_not_of(' ');
-        return p == std::string::npos ? "" : s.substr(0, p+1);
+
+    // used to trim the lex output and split it into sections to be used (lex, token type, row, column)
+    auto trim = [](std::string trimString) {
+        auto a = trimString.find_last_not_of(' ');
+        return a == std::string::npos ? "" : trimString.substr(0, a+1);
     };
  
     std::vector<Token> tokens;
     std::string line;
-    while (std::getline(f, line)) {
+    while (std::getline(lexorStream, line)) {
+
+        // this is done because the lexor output has 20 spaces between each section as per the design
         if (line.size() < 42) line.resize(42, ' ');
-        std::string lex     = rtrim(line.substr(0, 20));
-        std::string typeStr = rtrim(line.substr(21, 20));
-        std::string rest    = line.substr(41);
- 
-        // parse row / column
-        int row = 0, col = 0;
-        auto rp = rest.find("row ");
-        auto cp = rest.find("column ");
-        if (rp != std::string::npos) row = std::stoi(rest.substr(rp+4));
-        if (cp != std::string::npos) col = std::stoi(rest.substr(cp+7));
- 
-        Tokens type = Tokens::UNKNOWN;
-        if (typeStr == "End of File") {
+        std::string lex = trim(line.substr(0, 20));
+        std::string typeString = trim(line.substr(21, 20));
+        std::string rest = line.substr(41);
+
+        // this is how the row and column info is parsed. Used for error printing
+        auto rowAuto  = rest.find("row ");
+        auto columnAuto = rest.find("column ");
+        int row = std::stoi(rest.substr(rowAuto + 4));
+        int column = std::stoi(rest.substr(columnAuto + 7));
+
+        // if / else-if statement to ID token type from input
+        Tokens type;
+        if (typeString == "End of File") {
             type = Tokens::ENDOFFILE;
         }
-        else if (typeStr == "Identifier") {
+        else if (typeString == "Identifier") {
             type = Tokens::IDENTIFIER;
         }
-        else if (typeStr == "Literal") {
+        else if (typeString == "Literal") {
             type = Tokens::LITERAL;
         }
-        else if (typeStr == "Keyword") {
-            auto it = kw.find(lex);
-            if (it!=kw.end()) {
+        else if (typeString == "Keyword") {
+            auto findIt = keywords.find(lex);
+            if (findIt!=keywords.end()) {
+                type=findIt->second;
+            }
+        }
+        else if (typeString == "Delimiter") {
+            auto it = delimiters.find(lex);
+            if (it!=delimiters.end()) {
                 type=it->second;
             }
         }
-        else if (typeStr == "Delimiter") {
-            auto it = delim.find(lex);
-            if (it!=delim.end()) {
-                type=it->second;
-            }
+        else {
+            type=Tokens::UNKNOWN;
         }
- 
+
         if (type == Tokens::UNKNOWN) {
             continue;
-        }// skip unknowns
-        tokens.push_back({type, lex, row, col});
+        }
+
+        // has assigned a token at this point, so push it back
+        tokens.push_back({type, lex, row, column});
+
+        // checks if end of file to break the while loop
         if (type == Tokens::ENDOFFILE) {
             break;
         }
     }
+
+    // checks tokens are empty OR token type is == to endoffile
+    // pushs an endoffile token onto stack
     if (tokens.empty() || tokens.back().type != Tokens::ENDOFFILE) {
         tokens.push_back({Tokens::ENDOFFILE, "", 0, 0});
     }
     return tokens;
 }
- 
-// ═══════════════════════════════════════════════════════════════════
-//  GRAMMAR
-// ═══════════════════════════════════════════════════════════════════
- 
+
+// enum class of the non-terminals defined in the CFG
 enum class NonTerminals {
-    Program, ClassDeclarationList, ClassDeclaration,
-    AccessSpecifierSections, AccessSpecifierSection, AccessSpecifier,
-    MemberList, MemberDeclaration, VarDeclaration, VariableList,
-    FunctionDeclaration, ParameterList, Parameter, VarType,
-    CodeBlock, StatementList, Statement, MatchedStatement,
-    UnmatchedStatement, NonIfStatement, Declaration, DeclarationTail,
-    ExpressionStatement, WhileStatement, DoWhileStatement, ForStatement,
-    InsideForStatement, ReturnStatement, Expression, PostfixExpression,
-    PrimaryExpression, ArgumentList
+    Program,
+    ClassDeclarationList,
+    ClassDeclaration,
+    AccessSpecifierSections,
+    AccessSpecifierSection,
+    AccessSpecifier,
+    MemberList,
+    MemberDeclaration,
+    VariableDeclaration,
+    VariableList,
+    FunctionDeclaration,
+    ParameterList,
+    Parameter,
+    VariableType,
+    CodeBlock,
+    StatementList,
+    Statement,
+    MatchedStatement,
+    UnmatchedStatement,
+    NonIfStatement,
+    Declaration,
+    DeclarationEnd,
+    ExpressionStatement,
+    WhileStatement,
+    DoWhileStatement,
+    ForStatement,
+    InsideForStatement,
+    ReturnStatement,
+    Expression,
+    PostfixExpression,
+    PrimaryExpression,
+    ArgumentList
 };
 
-std::string ntname(NonTerminals nonterms) {
+// used to label the new part of the parse tree.
+// is the same thing as the class above just as a char array
+std::string nonTerminalName(NonTerminals nonterms) {
     static const char* CFGList[] = {
-        "Program","ClassDeclarationList","ClassDeclaration",
-        "AccessSpecifierSections","AccessSpecifierSection","AccessSpecifier",
-        "MemberList","MemberDeclaration","VarDeclaration","VariableList",
-        "FunctionDeclaration","ParameterList","Parameter","VarType",
-        "CodeBlock","StatementList","Statement","MatchedStatement",
-        "UnmatchedStatement","NonIfStatement","Declaration","DeclarationTail",
-        "ExpressionStatement","WhileStatement","DoWhileStatement","ForStatement",
-        "ForInit","ReturnStatement","Expression","PostfixExpression",
-        "PrimaryExpression","ArgumentList"
+        "Program",
+        "ClassDeclarationList",
+        "ClassDeclaration",
+        "AccessSpecifierSections",
+        "AccessSpecifierSection",
+        "AccessSpecifier",
+        "MemberList",
+        "MemberDeclaration",
+        "VariableDeclaration",
+        "VariableList",
+        "FunctionDeclaration",
+        "ParameterList",
+        "Parameter",
+        "VariableType",
+        "CodeBlock",
+        "StatementList",
+        "Statement",
+        "MatchedStatement",
+        "UnmatchedStatement",
+        "NonIfStatement",
+        "Declaration",
+        "DeclarationEnd",
+        "ExpressionStatement",
+        "WhileStatement",
+        "DoWhileStatement",
+        "ForStatement",
+        "InsideForLoop",
+        "ReturnStatement",
+        "Expression",
+        "PostfixExpression",
+        "PrimaryExpression",
+        "ArgumentList"
     };
-    return CFGList[(int)nonterms];
+    return CFGList[static_cast<int>(nonterms)];
 }
 
-using Sym = std::variant<Tokens, NonTerminals>;
-struct Prod { NonTerminals lhs; std::vector<Sym> rhs; std::string name; };
+// uses a variant to hold both Tokens and non-terminals
+// this makes it easier to write the grammar below
+using tokOrNonT = std::variant<Tokens, NonTerminals>;
+static auto Tok(Tokens tok) -> tokOrNonT {
+    return tok;
+}
+static auto NonTe(NonTerminals nt) -> tokOrNonT {
+    return nt;
+}
 
-// short aliases to keep table readable
-static auto K(Tokens t) -> Sym {
-    return t;
-}
-static auto N(NonTerminals n) -> Sym {
-    return n;
-}
-
-std::vector<Prod> buildGrammar() {
-    std::vector<Prod> G;
-    auto add = [&](NonTerminals l, std::vector<Sym> r, std::string nm) {
-        G.push_back({l, std::move(r), std::move(nm)});
-    };
-    using E = NonTerminals;
-    add(E::Program,{N(E::ClassDeclarationList)},"Program→ClassDeclarationList");
-    add(E::ClassDeclarationList,{N(E::ClassDeclaration)},"ClassDeclarationList→ClassDeclaration");
-    add(E::ClassDeclarationList,{N(E::ClassDeclaration),N(E::ClassDeclarationList)},"ClassDeclarationList→ClassDeclaration ClassDeclarationList");
-    add(E::ClassDeclaration,{K(Tokens::CLASS),K(Tokens::IDENTIFIER),K(Tokens::LEFTCURLYBRACKET),N(E::AccessSpecifierSections),K(Tokens::RIGHTCURLYBRACKET),K(Tokens::SEMICOLON)},"ClassDeclaration→class id { ... } ;");
-    add(E::AccessSpecifierSections,{N(E::AccessSpecifierSection)},"AccessSpecifierSections→AccessSpecifierSection");
-    add(E::AccessSpecifierSections,{N(E::AccessSpecifierSection),N(E::AccessSpecifierSections)},"AccessSpecifierSections→AccessSpecifierSection AccessSpecifierSections");
-    add(E::AccessSpecifierSection,{N(E::AccessSpecifier),K(Tokens::COLON),N(E::MemberList)},"AccessSpecifierSection→AccessSpecifier : MemberList");
-    add(E::AccessSpecifier,{K(Tokens::PUBLIC)},"AccessSpecifier→public");
-    add(E::AccessSpecifier,{K(Tokens::PRIVATE)},"AccessSpecifier→private");
-    add(E::AccessSpecifier,{K(Tokens::PROTECTED)},"AccessSpecifier→protected");
-    add(E::MemberList,{N(E::MemberDeclaration)},"MemberList→MemberDeclaration");
-    add(E::MemberList,{N(E::MemberDeclaration),N(E::MemberList)},"MemberList→MemberDeclaration MemberList");
-    add(E::MemberDeclaration,{N(E::VarDeclaration)},"MemberDeclaration→VarDeclaration");
-    add(E::MemberDeclaration,{N(E::FunctionDeclaration)},   "MemberDeclaration→FunctionDeclaration");
-    add(E::VarDeclaration,{N(E::VarType),N(E::VariableList),K(Tokens::SEMICOLON)},"VarDeclaration→VarType VariableList ;");
-    add(E::VariableList,{K(Tokens::IDENTIFIER)},"VariableList→id");
-    add(E::VariableList,{K(Tokens::IDENTIFIER),K(Tokens::COMMA),N(E::VariableList)},"VariableList→id , VariableList");
-    add(E::FunctionDeclaration,{N(E::VarType),K(Tokens::IDENTIFIER),K(Tokens::LEFTBRACKET),N(E::ParameterList),K(Tokens::RIGHTBRACKET),N(E::CodeBlock)},"FunctionDeclaration→VarType id ( ParameterList ) CodeBlock");
-    add(E::FunctionDeclaration,{N(E::VarType),K(Tokens::IDENTIFIER),K(Tokens::LEFTBRACKET),K(Tokens::RIGHTBRACKET),N(E::CodeBlock)},"FunctionDeclaration→VarType id ( ) CodeBlock");
-    add(E::ParameterList,{N(E::Parameter)},"ParameterList→Parameter");
-    add(E::ParameterList,{N(E::Parameter),K(Tokens::COMMA),N(E::ParameterList)},"ParameterList→Parameter , ParameterList");
-    add(E::Parameter,{N(E::VarType),K(Tokens::IDENTIFIER)},"Parameter→VarType id");
-    add(E::VarType,{K(Tokens::INT)},"VarType→int");
-    add(E::VarType,{K(Tokens::CHAR)},"VarType→char");
-    add(E::CodeBlock,{K(Tokens::LEFTCURLYBRACKET),N(E::StatementList),K(Tokens::RIGHTCURLYBRACKET)},"CodeBlock→{ StatementList }");
-    add(E::CodeBlock,{K(Tokens::LEFTCURLYBRACKET),K(Tokens::RIGHTCURLYBRACKET)},"CodeBlock→{ }");
-    add(E::StatementList,{N(E::Statement)},"StatementList→Statement");
-    add(E::StatementList,{N(E::Statement),N(E::StatementList)},"StatementList→Statement StatementList");
-    add(E::Statement,{N(E::MatchedStatement)},"Statement→MatchedStatement");
-    add(E::Statement,{N(E::UnmatchedStatement)},"Statement→UnmatchedStatement");
-    add(E::MatchedStatement,{N(E::NonIfStatement)},"MatchedStatement→NonIfStatement");
-    add(E::MatchedStatement,{K(Tokens::IF),K(Tokens::LEFTBRACKET),N(E::Expression),K(Tokens::RIGHTBRACKET),N(E::MatchedStatement),K(Tokens::ELSE),N(E::MatchedStatement)},"MatchedStatement→if(Expr) Matched else Matched");
-    add(E::UnmatchedStatement,{K(Tokens::IF),K(Tokens::LEFTBRACKET),N(E::Expression),K(Tokens::RIGHTBRACKET),N(E::Statement)},"UnmatchedStatement→if(Expr) Statement");
-    add(E::UnmatchedStatement,{K(Tokens::IF),K(Tokens::LEFTBRACKET),N(E::Expression),K(Tokens::RIGHTBRACKET),N(E::MatchedStatement),K(Tokens::ELSE),N(E::UnmatchedStatement)},"UnmatchedStatement→if(Expr) Matched else Unmatched");
-    add(E::NonIfStatement,{N(E::Declaration)},"NonIfStatement→Declaration");
-    add(E::NonIfStatement,{N(E::ExpressionStatement)},"NonIfStatement→ExpressionStatement");
-    add(E::NonIfStatement,{N(E::WhileStatement)},"NonIfStatement→WhileStatement");
-    add(E::NonIfStatement,{N(E::DoWhileStatement)},"NonIfStatement→DoWhileStatement");
-    add(E::NonIfStatement,{N(E::ForStatement)},"NonIfStatement→ForStatement");
-    add(E::NonIfStatement,{N(E::ReturnStatement)},"NonIfStatement→ReturnStatement");
-    add(E::NonIfStatement,{N(E::CodeBlock)},"NonIfStatement→CodeBlock");
-    add(E::Declaration,{N(E::VarType),K(Tokens::IDENTIFIER),N(E::DeclarationTail),K(Tokens::SEMICOLON)},"Declaration→VarType id DeclarationTail ;");
-    add(E::DeclarationTail,{},"DeclarationTail→ε");
-    add(E::DeclarationTail,{K(Tokens::COMMA),K(Tokens::IDENTIFIER),N(E::DeclarationTail)},"DeclarationTail→, id DeclarationTail");
-    add(E::ExpressionStatement,{N(E::Expression),K(Tokens::SEMICOLON)},"ExpressionStatement→Expression ;");
-    add(E::WhileStatement,{K(Tokens::WHILE),K(Tokens::LEFTBRACKET),N(E::Expression),K(Tokens::RIGHTBRACKET),N(E::CodeBlock)},"WhileStatement→while(Expr) CodeBlock");
-    add(E::DoWhileStatement,{K(Tokens::DO),N(E::CodeBlock),K(Tokens::WHILE),K(Tokens::LEFTBRACKET),N(E::Expression),K(Tokens::RIGHTBRACKET),K(Tokens::SEMICOLON)},"DoWhileStatement→do CodeBlock while(Expr);");
-    add(E::ForStatement,{K(Tokens::FOR),K(Tokens::LEFTBRACKET),N(E::InsideForStatement),K(Tokens::SEMICOLON),N(E::Expression),K(Tokens::SEMICOLON),N(E::Expression),K(Tokens::RIGHTBRACKET),N(E::CodeBlock)},"ForStatement→for(ForInit;Expr;Expr) CodeBlock");
-    add(E::InsideForStatement,{N(E::Expression)},"ForInit→Expression");
-    add(E::InsideForStatement,{N(E::VarType),K(Tokens::IDENTIFIER)},"ForInit→VarType id");
-    add(E::ReturnStatement,{K(Tokens::RETURN),N(E::Expression),K(Tokens::SEMICOLON)},"ReturnStatement→return Expr ;");
-    add(E::Expression,{N(E::PostfixExpression)},"Expression→PostfixExpression");
-    add(E::PostfixExpression,{N(E::PrimaryExpression)},"PostfixExpression→PrimaryExpression");
-    add(E::PostfixExpression,{N(E::PostfixExpression),K(Tokens::LEFTSQUAREBRACKET),N(E::Expression),K(Tokens::RIGHTSQUAREBRACKET)},"PostfixExpression→PostfixExpr[Expr]");
-    add(E::PostfixExpression,{N(E::PostfixExpression),K(Tokens::LEFTBRACKET),N(E::ArgumentList),K(Tokens::RIGHTBRACKET)},"PostfixExpression→PostfixExpr(ArgList)");
-    add(E::PostfixExpression,{N(E::PostfixExpression),K(Tokens::LEFTBRACKET),K(Tokens::RIGHTBRACKET)},"PostfixExpression→PostfixExpr()");
-    add(E::PrimaryExpression,{K(Tokens::IDENTIFIER)},"PrimaryExpression→id");
-    add(E::PrimaryExpression,{K(Tokens::LITERAL)},"PrimaryExpression→lit");
-    add(E::PrimaryExpression,{K(Tokens::LEFTBRACKET),N(E::Expression),K(Tokens::RIGHTBRACKET)}, "PrimaryExpression→(Expr)");
-    add(E::PrimaryExpression,{K(Tokens::NEW),N(E::VarType),K(Tokens::LEFTBRACKET),K(Tokens::RIGHTBRACKET)}, "PrimaryExpression→new VarType()");
-    add(E::PrimaryExpression,{K(Tokens::NEW),N(E::VarType),K(Tokens::LEFTSQUAREBRACKET),N(E::Expression),K(Tokens::RIGHTSQUAREBRACKET)}, "PrimaryExpression→new VarType[Expr]");
-    add(E::PrimaryExpression,{K(Tokens::DELETE),K(Tokens::IDENTIFIER)},"PrimaryExpression→delete id");
-    add(E::ArgumentList,{N(E::Expression)},"ArgumentList→Expression");
-    add(E::ArgumentList,{N(E::Expression),K(Tokens::COMMA),N(E::ArgumentList)},"ArgumentList→Expr,ArgumentList");
-    return G;
-}
- 
-// ═══════════════════════════════════════════════════════════════════
-//  SLR TABLE BUILDER
-// ═══════════════════════════════════════════════════════════════════
- 
-struct Item {
-    int prod, dot;
-    bool operator<(const Item& o)  const { return prod!=o.prod ? prod<o.prod : dot<o.dot; }
-    bool operator==(const Item& o) const { return prod==o.prod && dot==o.dot; }
+// a struct for a grammarRule that defined the different parts.
+// non-terminal on the left
+// token or non-terminal on the right
+// then the string name of it (defined in the CFG)
+struct grammarRule {
+    NonTerminals leftHS;
+    std::vector<tokOrNonT> RightHS;
+    std::string name;
 };
-using ISet = std::set<Item>;
- 
+
+// method to build the grammar using variant and struct above
+std::vector<grammarRule> buildGrammar() {
+    std::vector<grammarRule> grammarRules;
+
+    // defined addToGrammar used heavily below
+    // parses on the left side, right side, and name because the buildGrammar returns vector of the grammarRule struct
+    auto addToGrammar = [&](NonTerminals nonTerms, std::vector<tokOrNonT> symbol, std::string string) {
+        grammarRules.push_back({
+            nonTerms,
+            std::move(symbol),
+            std::move(string)});
+    };
+
+    // adds the 64 different sections of the CFG here
+    // first parameter is the non-terminal enum class
+    // second parameter is the token or non-terminal, if a non-terminal it's the same enum class, if a token, it's the
+    // tokens enum class at the top
+    // third parameter is the string. copy and pasted from the CFG
+    using nonT = NonTerminals;
+    addToGrammar(nonT::Program,{NonTe(nonT::ClassDeclarationList)},"Program->ClassDeclarationList");
+    addToGrammar(nonT::ClassDeclarationList,{NonTe(nonT::ClassDeclaration)},"ClassDeclarationList->ClassDeclaration");
+    addToGrammar(nonT::ClassDeclarationList,{NonTe(nonT::ClassDeclaration),NonTe(nonT::ClassDeclarationList)},"ClassDeclarationList->ClassDeclaration ClassDeclarationList");
+    addToGrammar(nonT::ClassDeclaration,{Tok(Tokens::CLASS),Tok(Tokens::IDENTIFIER),Tok(Tokens::LEFTCURLYBRACKET),NonTe(nonT::AccessSpecifierSections),Tok(Tokens::RIGHTCURLYBRACKET),Tok(Tokens::SEMICOLON)},"ClassDeclaration->classidentifier{ AccessSpecifierSections } ;");
+    addToGrammar(nonT::AccessSpecifierSections,{NonTe(nonT::AccessSpecifierSection)},"AccessSpecifierSections->AccessSpecifierSection");
+    addToGrammar(nonT::AccessSpecifierSections,{NonTe(nonT::AccessSpecifierSection),NonTe(nonT::AccessSpecifierSections)},"AccessSpecifierSections->AccessSpecifierSection AccessSpecifierSections");
+    addToGrammar(nonT::AccessSpecifierSection,{NonTe(nonT::AccessSpecifier),Tok(Tokens::COLON),NonTe(nonT::MemberList)},"AccessSpecifierSection->AccessSpecifier : MemberList");
+    addToGrammar(nonT::AccessSpecifier,{Tok(Tokens::PUBLIC)},"AccessSpecifier->public");
+    addToGrammar(nonT::AccessSpecifier,{Tok(Tokens::PRIVATE)},"AccessSpecifier->private");
+    addToGrammar(nonT::AccessSpecifier,{Tok(Tokens::PROTECTED)},"AccessSpecifier->protected");
+    addToGrammar(nonT::MemberList,{NonTe(nonT::MemberDeclaration)},"MemberList->MemberDeclaration");
+    addToGrammar(nonT::MemberList,{NonTe(nonT::MemberDeclaration),NonTe(nonT::MemberList)},"MemberList->MemberDeclaration MemberList");
+    addToGrammar(nonT::MemberDeclaration,{NonTe(nonT::VariableDeclaration)},"MemberDeclaration->VariableDeclaration");
+    addToGrammar(nonT::MemberDeclaration,{NonTe(nonT::FunctionDeclaration)},   "MemberDeclaration->FunctionDeclaration");
+    addToGrammar(nonT::VariableDeclaration,{NonTe(nonT::VariableType),NonTe(nonT::VariableList),Tok(Tokens::SEMICOLON)},"VariableDeclaration->VariableType VariableList ;");
+    addToGrammar(nonT::VariableList,{Tok(Tokens::IDENTIFIER)},"VariableList->identifier");
+    addToGrammar(nonT::VariableList,{Tok(Tokens::IDENTIFIER),Tok(Tokens::COMMA),NonTe(nonT::VariableList)},"VariableList->identifier , VariableList");
+    addToGrammar(nonT::FunctionDeclaration,{NonTe(nonT::VariableType),Tok(Tokens::IDENTIFIER),Tok(Tokens::LEFTBRACKET),NonTe(nonT::ParameterList),Tok(Tokens::RIGHTBRACKET),NonTe(nonT::CodeBlock)},"FunctionDeclaration->VariableType identifier( ParameterList ) CodeBlock");
+    addToGrammar(nonT::FunctionDeclaration,{NonTe(nonT::VariableType),Tok(Tokens::IDENTIFIER),Tok(Tokens::LEFTBRACKET),Tok(Tokens::RIGHTBRACKET),NonTe(nonT::CodeBlock)},"FunctionDeclaration->VariableType identifier( ) CodeBlock");
+    addToGrammar(nonT::ParameterList,{NonTe(nonT::Parameter)},"ParameterList->Parameter");
+    addToGrammar(nonT::ParameterList,{NonTe(nonT::Parameter),Tok(Tokens::COMMA),NonTe(nonT::ParameterList)},"ParameterList->Parameter , ParameterList");
+    addToGrammar(nonT::Parameter,{NonTe(nonT::VariableType),Tok(Tokens::IDENTIFIER)},"Parameter->VariableType identifier");
+    addToGrammar(nonT::VariableType,{Tok(Tokens::INT)},"VariableType->int");
+    addToGrammar(nonT::VariableType,{Tok(Tokens::CHAR)},"VariableType->char");
+    addToGrammar(nonT::CodeBlock,{Tok(Tokens::LEFTCURLYBRACKET),NonTe(nonT::StatementList),Tok(Tokens::RIGHTCURLYBRACKET)},"CodeBlock->{ StatementList }");
+    addToGrammar(nonT::CodeBlock,{Tok(Tokens::LEFTCURLYBRACKET),Tok(Tokens::RIGHTCURLYBRACKET)},"CodeBlock->{ }");
+    addToGrammar(nonT::StatementList,{NonTe(nonT::Statement)},"StatementList->Statement");
+    addToGrammar(nonT::StatementList,{NonTe(nonT::Statement),NonTe(nonT::StatementList)},"StatementList->Statement StatementList");
+    addToGrammar(nonT::Statement,{NonTe(nonT::MatchedStatement)},"Statement->MatchedStatement");
+    addToGrammar(nonT::Statement,{NonTe(nonT::UnmatchedStatement)},"Statement->UnmatchedStatement");
+    addToGrammar(nonT::MatchedStatement,{NonTe(nonT::NonIfStatement)},"MatchedStatement->NonIfStatement");
+    addToGrammar(nonT::MatchedStatement,{Tok(Tokens::IF),Tok(Tokens::LEFTBRACKET),NonTe(nonT::Expression),Tok(Tokens::RIGHTBRACKET),NonTe(nonT::MatchedStatement),Tok(Tokens::ELSE),NonTe(nonT::MatchedStatement)},"MatchedStatement->if( Expression ) MatchedStatement else MatchedStatement");
+    addToGrammar(nonT::UnmatchedStatement,{Tok(Tokens::IF),Tok(Tokens::LEFTBRACKET),NonTe(nonT::Expression),Tok(Tokens::RIGHTBRACKET),NonTe(nonT::Statement)},"UnmatchedStatement->if( Expression ) Statement");
+    addToGrammar(nonT::UnmatchedStatement,{Tok(Tokens::IF),Tok(Tokens::LEFTBRACKET),NonTe(nonT::Expression),Tok(Tokens::RIGHTBRACKET),NonTe(nonT::MatchedStatement),Tok(Tokens::ELSE),NonTe(nonT::UnmatchedStatement)},"UnmatchedStatement->if( Expression ) MatchedStatement else UnmatchedStatement");
+    addToGrammar(nonT::NonIfStatement,{NonTe(nonT::Declaration)},"NonIfStatement->Declaration");
+    addToGrammar(nonT::NonIfStatement,{NonTe(nonT::ExpressionStatement)},"NonIfStatement->ExpressionStatement");
+    addToGrammar(nonT::NonIfStatement,{NonTe(nonT::WhileStatement)},"NonIfStatement->WhileStatement");
+    addToGrammar(nonT::NonIfStatement,{NonTe(nonT::DoWhileStatement)},"NonIfStatement->DoWhileStatement");
+    addToGrammar(nonT::NonIfStatement,{NonTe(nonT::ForStatement)},"NonIfStatement->ForStatement");
+    addToGrammar(nonT::NonIfStatement,{NonTe(nonT::ReturnStatement)},"NonIfStatement->ReturnStatement");
+    addToGrammar(nonT::NonIfStatement,{NonTe(nonT::CodeBlock)},"NonIfStatement->CodeBlock");
+    addToGrammar(nonT::Declaration,{NonTe(nonT::VariableType),Tok(Tokens::IDENTIFIER),NonTe(nonT::DeclarationEnd),Tok(Tokens::SEMICOLON)},"Declaration->VariableType identifier DeclarationEnd ;");
+    addToGrammar(nonT::DeclarationEnd,{},"DeclarationEnd->ε");
+    addToGrammar(nonT::DeclarationEnd,{Tok(Tokens::COMMA),Tok(Tokens::IDENTIFIER),NonTe(nonT::DeclarationEnd)},"DeclarationEnd->, identifier DeclarationEnd");
+    addToGrammar(nonT::ExpressionStatement,{NonTe(nonT::Expression),Tok(Tokens::SEMICOLON)},"ExpressionStatement->Expression ;");
+    addToGrammar(nonT::WhileStatement,{Tok(Tokens::WHILE),Tok(Tokens::LEFTBRACKET),NonTe(nonT::Expression),Tok(Tokens::RIGHTBRACKET),NonTe(nonT::CodeBlock)},"WhileStatement->while( Expression) CodeBlock");
+    addToGrammar(nonT::DoWhileStatement,{Tok(Tokens::DO),NonTe(nonT::CodeBlock),Tok(Tokens::WHILE),Tok(Tokens::LEFTBRACKET),NonTe(nonT::Expression),Tok(Tokens::RIGHTBRACKET),Tok(Tokens::SEMICOLON)},"DoWhileStatement->do CodeBlock while( Expression );");
+    addToGrammar(nonT::ForStatement,{Tok(Tokens::FOR),Tok(Tokens::LEFTBRACKET),NonTe(nonT::InsideForStatement),Tok(Tokens::SEMICOLON),NonTe(nonT::Expression),Tok(Tokens::SEMICOLON),NonTe(nonT::Expression),Tok(Tokens::RIGHTBRACKET),NonTe(nonT::CodeBlock)},"ForStatement->for(InsideForStatement;Expression;Expression) CodeBlock");
+    addToGrammar(nonT::InsideForStatement,{NonTe(nonT::Expression)},"InsideForStatement->Expression");
+    addToGrammar(nonT::InsideForStatement,{NonTe(nonT::VariableType),Tok(Tokens::IDENTIFIER)},"InsideForStatement->VariableType identifier");
+    addToGrammar(nonT::ReturnStatement,{Tok(Tokens::RETURN),NonTe(nonT::Expression),Tok(Tokens::SEMICOLON)},"ReturnStatement->return Expr ;");
+    addToGrammar(nonT::Expression,{NonTe(nonT::PostfixExpression)},"Expression->PostfixExpression");
+    addToGrammar(nonT::PostfixExpression,{NonTe(nonT::PrimaryExpression)},"PostfixExpression->PrimaryExpression");
+    addToGrammar(nonT::PostfixExpression,{NonTe(nonT::PostfixExpression),Tok(Tokens::LEFTSQUAREBRACKET),NonTe(nonT::Expression),Tok(Tokens::RIGHTSQUAREBRACKET)},"PostfixExpression->PostfixExpression[ Expression ]");
+    addToGrammar(nonT::PostfixExpression,{NonTe(nonT::PostfixExpression),Tok(Tokens::LEFTBRACKET),NonTe(nonT::ArgumentList),Tok(Tokens::RIGHTBRACKET)},"PostfixExpression->PostfixExpression( ArgumentList )");
+    addToGrammar(nonT::PostfixExpression,{NonTe(nonT::PostfixExpression),Tok(Tokens::LEFTBRACKET),Tok(Tokens::RIGHTBRACKET)},"PostfixExpression->PostfixExpression()");
+    addToGrammar(nonT::PrimaryExpression,{Tok(Tokens::IDENTIFIER)},"PrimaryExpression->identifier");
+    addToGrammar(nonT::PrimaryExpression,{Tok(Tokens::LITERAL)},"PrimaryExpression->literal");
+    addToGrammar(nonT::PrimaryExpression,{Tok(Tokens::LEFTBRACKET),NonTe(nonT::Expression),Tok(Tokens::RIGHTBRACKET)}, "PrimaryExpression->( Expression )");
+    addToGrammar(nonT::PrimaryExpression,{Tok(Tokens::NEW),NonTe(nonT::VariableType),Tok(Tokens::LEFTBRACKET),Tok(Tokens::RIGHTBRACKET)}, "PrimaryExpression->new VariableType()");
+    addToGrammar(nonT::PrimaryExpression,{Tok(Tokens::NEW),NonTe(nonT::VariableType),Tok(Tokens::LEFTSQUAREBRACKET),NonTe(nonT::Expression),Tok(Tokens::RIGHTSQUAREBRACKET)}, "PrimaryExpression->new VariableType[ Expression ]");
+    addToGrammar(nonT::PrimaryExpression,{Tok(Tokens::DELETE),Tok(Tokens::IDENTIFIER)},"PrimaryExpression->delete identifier");
+    addToGrammar(nonT::ArgumentList,{NonTe(nonT::Expression)},"ArgumentList->Expression");
+    addToGrammar(nonT::ArgumentList,{NonTe(nonT::Expression),Tok(Tokens::COMMA),NonTe(nonT::ArgumentList)},"ArgumentList->Expression,ArgumentList");
+    return grammarRules;
+}
+
+// a struct to represent the item inside a specific position of a CFG rule
+// like the dot position as the parser reads into the rule
+struct Item {
+    int grammarRuleNumber;
+    int dotPosition;
+    bool operator < (const Item& item) const{
+        return grammarRuleNumber != item.grammarRuleNumber ? grammarRuleNumber < item.grammarRuleNumber : dotPosition < item.dotPosition;
+    }
+    bool operator == (const Item& item2) const{
+        return grammarRuleNumber == item2.grammarRuleNumber && dotPosition == item2.dotPosition;
+    }
+};
+
+// a class about the possible moves the parser can do
 enum class ActionMoves {
     SHIFT, REDUCE, ACCEPT, ERROR
 };
-struct Action { ActionMoves kind=ActionMoves::ERROR; int val=-1; };
- 
-struct ParseTable {
-    int n=0;
-    std::vector<std::map<Tokens,  Action>> act;
-    std::vector<std::map<NonTerminals, int>>    go;
+
+// a struct using the action class above
+// holds an action move (set to error by default)
+// hold an int, or where to go after performing an action (set to -1, or an error, by default)
+// for example: SHIFT 14 means parser must shift to state 14
+struct Action {
+    ActionMoves AM = ActionMoves::ERROR;
+    int value=-1;
 };
- 
+
+// a struct with info about the SLR parse table
+// an int to hold the amount of state
+// a vector of maps holding the action table. the map holds a token and action
+// a vector of maps holding the go-to table. the map holds a non-terminal and an int
+struct ParseTable {
+    int stateNumber = 0;
+    std::vector<std::map<Tokens, Action>> actionTable;
+    std::vector<std::map<NonTerminals, int>> goToTable;
+};
+
+// a massive struct that builds the entire parsing table from the previously defined grammar
 struct SLRBuilder {
-    std::vector<Prod>  G;
-    int                aug;
-    std::map<NonTerminals,std::set<Tokens>> first, follow;
-    std::map<NonTerminals,bool>        nullable;
-    std::vector<ISet>        states;
-    std::map<ISet,int>       sid;
-    ParseTable               tbl;
- 
+
+    // all the data that is stored for the table.
+    // including CFG rules, CFG size, the states, table etc.
+    using ItemSet = std::set<Item>;
+    std::vector<grammarRule> grammar;
+    int grammarSize = 64;
+    std::map<NonTerminals,std::set<Tokens>> first;
+    std::map<NonTerminals,std::set<Tokens>> follow;
+    std::map<NonTerminals, bool> epsilonDecider;
+    std::vector<ItemSet> states;
+    std::map<ItemSet, int> stateNumberMap;
+    ParseTable table;
+
+    // the variable assignment and method calls are in the constructor so the SLR table is built upon making the object
     SLRBuilder() {
-        G = buildGrammar();
-        aug = (int)G.size();
-        G.push_back(Prod{NonTerminals::Program,{(Sym)NonTerminals::Program},"S'→Program"});
-        calcFirst(); calcFollow(); buildStates(); buildTable();
+        grammar = buildGrammar();
+        grammarSize = static_cast<int>(grammar.size());
+        grammar.push_back(grammarRule{NonTerminals::Program,{static_cast<tokOrNonT>(NonTerminals::Program)},"S'->Program"});
+        calcFirst();
+        calcFollow();
+        buildStates();
+        buildTable();
     }
- 
-    // FIRST of one symbol
-    std::set<Tokens> firstSym(const Sym& s) const {
-        if (auto* t = std::get_if<Tokens>(&s)) return {*t};
-        return first.at(std::get<NonTerminals>(s));
-    }
- 
-    // FIRST of suffix seq[from..]
-    std::set<Tokens> firstSeq(const std::vector<Sym>& seq, int from=0) const {
-        std::set<Tokens> r;
-        for (int i=from; i<(int)seq.size(); i++) {
-            auto fs = firstSym(seq[i]);
-            r.insert(fs.begin(), fs.end());
-            if (auto* n = std::get_if<NonTerminals>(&seq[i]); !n || !nullable.at(*n)) break;
-        }
-        return r;
-    }
- 
-    bool seqNullable(const std::vector<Sym>& seq, int from=0) const {
-        for (int i=from; i<(int)seq.size(); i++) {
-            auto* n = std::get_if<NonTerminals>(&seq[i]);
-            if (!n || !nullable.at(*n)) return false;
-        }
-        return true;
-    }
- 
-    void calcFirst() {
-        for (int i=0;i<(int)NonTerminals::_COUNT;i++) { first[(NonTerminals)i]={}; nullable[(NonTerminals)i]=false; }
-        bool chg=true;
-        while (chg) { chg=false;
-            for (int pi=0;pi<aug;pi++) {
-                auto& p=G[pi]; auto& fs=first[p.lhs];
-                if (p.rhs.empty()) { if (!nullable[p.lhs]) { nullable[p.lhs]=true; chg=true; } continue; }
-                for (auto& sym:p.rhs) {
-                    for (auto t:firstSym(sym)) if(fs.insert(t).second) chg=true;
-                    if (auto* n=std::get_if<NonTerminals>(&sym); !n||!nullable.at(*n)) break;
-                }
-                if (seqNullable(p.rhs) && !nullable[p.lhs]) { nullable[p.lhs]=true; chg=true; }
-            }
-        }
-    }
- 
-    void calcFollow() {
-        for (int i=0;i<(int)NonTerminals::_COUNT;i++) follow[(NonTerminals)i]={};
-        follow[NonTerminals::Program].insert(Tokens::ENDOFFILE);
-        bool chg=true;
-        while (chg) { chg=false;
-            for (int pi=0;pi<aug;pi++) {
-                auto& p=G[pi];
-                for (int i=0;i<(int)p.rhs.size();i++) {
-                    auto* B=std::get_if<NonTerminals>(&p.rhs[i]); if(!B) continue;
-                    for (auto t:firstSeq(p.rhs,i+1)) if(follow[*B].insert(t).second) chg=true;
-                    if (seqNullable(p.rhs,i+1))
-                        for (auto t:follow[p.lhs]) if(follow[*B].insert(t).second) chg=true;
-                }
-            }
-        }
-    }
- 
-    ISet closure(ISet I) const {
+
+    ItemSet closure(ItemSet I) const {
         bool chg=true;
         while (chg) { chg=false;
             for (auto item:std::vector<Item>(I.begin(),I.end())) {
-                auto& rhs=G[item.prod].rhs;
-                if (item.dot>=(int)rhs.size()) continue;
-                auto* B=std::get_if<NonTerminals>(&rhs[item.dot]); if(!B) continue;
-                for (int pi=0;pi<(int)G.size();pi++)
-                    if (G[pi].lhs==*B) if(I.insert({pi,0}).second) chg=true;
+                auto& rhs=grammar[item.grammarRuleNumber].RightHS;
+                if (item.dotPosition>=(int)rhs.size()) continue;
+                auto* B=std::get_if<NonTerminals>(&rhs[item.dotPosition]); if(!B) continue;
+                for (int pi=0;pi<(int)grammar.size();pi++)
+                    if (grammar[pi].leftHS==*B) if(I.insert({pi,0}).second) chg=true;
             }
         }
         return I;
     }
- 
-    ISet goTo(const ISet& I, const Sym& X) const {
-        ISet mv;
+
+    ItemSet goTo(const ItemSet& I, const tokOrNonT& X) const {
+        ItemSet mv;
         for (auto& item:I) {
-            auto& rhs=G[item.prod].rhs;
-            if (item.dot<(int)rhs.size() && rhs[item.dot]==X)
-                mv.insert({item.prod,item.dot+1});
+            auto& rhs=grammar[item.grammarRuleNumber].RightHS;
+            if (item.dotPosition<(int)rhs.size() && rhs[item.dotPosition]==X)
+                mv.insert({item.grammarRuleNumber,item.dotPosition+1});
         }
         return closure(mv);
     }
- 
+
+    void calcFirst() {
+        for (int i=0;i<grammarSize;i++) {
+            first[static_cast<NonTerminals>(i)]={};
+            epsilonDecider[static_cast<NonTerminals>(i)]=false;
+        }
+        bool chg=true;
+        while (chg) { chg=false;
+            for (int pi=0;pi<grammarSize;pi++) {
+                auto& p=grammar[pi]; auto& fs=first[p.leftHS];
+                if (p.RightHS.empty()) {
+                    if (!epsilonDecider[p.leftHS]) { epsilonDecider[p.leftHS]=true; chg=true; } continue;
+                }
+                for (auto& sym:p.RightHS) {
+                    if (auto* t=std::get_if<Tokens>(&sym)) { if(fs.insert(*t).second) chg=true; break; }
+                    for (auto t:first[std::get<NonTerminals>(sym)]) if(fs.insert(t).second) chg=true;
+                    if (!epsilonDecider[std::get<NonTerminals>(sym)]) break;
+                }
+                bool allNull=true;
+                for (auto& sym:p.RightHS) {
+                    auto* n=std::get_if<NonTerminals>(&sym);
+                    if (!n || !epsilonDecider[*n]) { allNull=false; break; }
+                }
+                if (allNull && !epsilonDecider[p.leftHS]) { epsilonDecider[p.leftHS]=true; chg=true; }
+            }
+        }
+    }
+
+    void calcFollow() {
+        follow[NonTerminals::Program].insert(Tokens::ENDOFFILE);
+        bool chg=true;
+        while (chg) { chg=false;
+            for (int pi=0;pi<grammarSize;pi++) {
+                auto& p=grammar[pi];
+                for (int i=0;i<(int)p.RightHS.size();i++) {
+                    auto* B=std::get_if<NonTerminals>(&p.RightHS[i]); if(!B) continue;
+                    for (int j=i+1;j<(int)p.RightHS.size();j++) {
+                        if (auto* t=std::get_if<Tokens>(&p.RightHS[j])) { if(follow[*B].insert(*t).second) chg=true; break; }
+                        for (auto t:first[std::get<NonTerminals>(p.RightHS[j])]) if(follow[*B].insert(t).second) chg=true;
+                        if (!epsilonDecider[std::get<NonTerminals>(p.RightHS[j])]) break;
+                    }
+                    bool restNull=true;
+                    for (int j=i+1;j<(int)p.RightHS.size();j++) {
+                        auto* n=std::get_if<NonTerminals>(&p.RightHS[j]);
+                        if (!n || !epsilonDecider[*n]) { restNull=false; break; }
+                    }
+                    if (restNull) for (auto t:follow[p.leftHS]) if(follow[*B].insert(t).second) chg=true;
+                }
+            }
+        }
+    }
+
     void buildStates() {
-        ISet s0=closure({{aug,0}});
-        states.push_back(s0); sid[s0]=0;
+        ItemSet s0=closure({{grammarSize,0}});
+        states.push_back(s0); stateNumberMap[s0]=0;
         for (int si=0;si<(int)states.size();si++) {
-            std::set<Sym> syms;
+            std::set<tokOrNonT> syms;
             for (auto& item:states[si]) {
-                auto& rhs=G[item.prod].rhs;
-                if (item.dot<(int)rhs.size()) syms.insert(rhs[item.dot]);
+                auto& rhs=grammar[item.grammarRuleNumber].RightHS;
+                if (item.dotPosition<(int)rhs.size()) syms.insert(rhs[item.dotPosition]);
             }
             for (auto& X:syms) {
-                ISet g=goTo(states[si],X);
+                ItemSet g=goTo(states[si],X);
                 if (g.empty()) continue;
-                if (!sid.count(g)) { sid[g]=(int)states.size(); states.push_back(g); }
+                if (!stateNumberMap.count(g)) { stateNumberMap[g]=(int)states.size(); states.push_back(g); }
             }
         }
     }
- 
-    void setAct(int s, Tokens t, Action a) {
-        auto it=tbl.act[s].find(t);
-        if (it!=tbl.act[s].end()) {
-            if (it->second.kind==a.kind && it->second.val==a.val) return;
-            throw std::runtime_error(
-                "SLR conflict state "+std::to_string(s)+" on "+tname(t)+
-                "\n  have: "+(it->second.kind==ActionMoves::SHIFT?"SHIFT ":"REDUCE ")+std::to_string(it->second.val)+
-                "\n  new:  "+(a.kind==ActionMoves::SHIFT?"SHIFT ":"REDUCE ")+std::to_string(a.val));
-        }
-        tbl.act[s][t]=a;
-    }
- 
+
     void buildTable() {
-        int n=(int)states.size();
-        tbl.n=n; tbl.act.resize(n); tbl.go.resize(n);
-        for (int si=0;si<n;si++) {
+        auto setAct = [&](int s, Tokens t, Action a) {
+            auto it=table.actionTable[s].find(t);
+            if (it!=table.actionTable[s].end()) {
+                if (it->second.AM==a.AM && it->second.value==a.value) return;
+                throw std::runtime_error(
+                    "SLR conflict state "+std::to_string(s)+" on "+tokenName(t)+
+                    "\n  have: "+(it->second.AM==ActionMoves::SHIFT?"SHIFT ":"REDUCE ")+std::to_string(it->second.value)+
+                    "\n  new:  "+(a.AM==ActionMoves::SHIFT?"SHIFT ":"REDUCE ")+std::to_string(a.value));
+            }
+            table.actionTable[s][t]=a;
+        };
+
+        int b=static_cast<int>(states.size());
+        table.stateNumber=b; table.actionTable.resize(b); table.goToTable.resize(b);
+        for (int si=0;si<b;si++) {
             for (auto& item:states[si]) {
-                auto& rhs=G[item.prod].rhs;
-                if (item.dot<(int)rhs.size()) {
-                    auto& sym=rhs[item.dot];
-                    ISet g=goTo(states[si],sym);
+                auto& RHS=grammar[item.grammarRuleNumber].RightHS;
+                if (item.dotPosition<(int)RHS.size()) {
+                    auto& sym=RHS[item.dotPosition];
+                    ItemSet g=goTo(states[si],sym);
                     if (g.empty()) continue;
-                    int tgt=sid.at(g);
-                    if (auto* t=std::get_if<Tokens>(&sym))
-                        setAct(si,*t,{ActionMoves::SHIFT,tgt});
-                    else
-                        tbl.go[si][std::get<NonTerminals>(sym)]=tgt;
+                    int tgt=stateNumberMap.at(g);
+                    if (auto* t=std::get_if<Tokens>(&sym)) setAct(si,*t,{ActionMoves::SHIFT,tgt});
+                    else table.goToTable[si][std::get<NonTerminals>(sym)]=tgt;
                 } else {
-                    if (item.prod==aug) setAct(si,Tokens::ENDOFFILE,{ActionMoves::ACCEPT,0});
-                    else for (auto t:follow.at(G[item.prod].lhs))
-                        setAct(si,t,{ActionMoves::REDUCE,item.prod});
+                    if (item.grammarRuleNumber==grammarSize) setAct(si,Tokens::ENDOFFILE,{ActionMoves::ACCEPT,0});
+                    else for (auto t:follow.at(grammar[item.grammarRuleNumber].leftHS))
+                        setAct(si,t,{ActionMoves::REDUCE,item.grammarRuleNumber});
                 }
             }
         }
     }
 };
- 
-// ═══════════════════════════════════════════════════════════════════
-//  PARSE TREE
-// ═══════════════════════════════════════════════════════════════════
- 
+
+// a struct about a node within the parse tree
 struct Node {
-    std::string label, val;
-    std::vector<std::shared_ptr<Node>> ch;
-    Node(std::string l, std::string v="") : label(std::move(l)), val(std::move(v)) {}
-    void print(std::ostream& os, std::string pre="", bool last=true) const {
-        os << pre << (last?"└── ":"├── ") << label;
-        if (!val.empty()) os << " [" << val << "]";
-        os << "\n";
-        std::string np = pre + (last?"    ":"│   ");
-        for (int i=0;i<(int)ch.size();i++) ch[i]->print(os,np,i==(int)ch.size()-1);
+
+    // label, value, and nodeVector for variables
+    std::string label;
+    std::string value;
+    std::vector<std::shared_ptr<Node>> nodeVector;
+
+
+    // constructor that creates nodes based on the parameters
+    // s2 is = "" because it is an optional value
+    // terminal takes both (Keyword, while)
+    // non-terminal just passes one (ArgumentList)
+    Node(const std::string &s, const std::string &s2 = "") {
+        label = s;
+        value = s2;
+    }
+
+    // method to print the parse tree to the console
+    // same thing with prePrint = "". parameter is optional for same reason
+    void print(std::ostream& osStream, std::string prePrint = "") const {
+
+        // if true means printing a non-terminal
+        if (value.empty()) {
+            osStream << prePrint << label;
+        }
+
+        // if true mean printing a terminal
+        if (!value.empty()) {
+            osStream << prePrint << value << " [" << label << "]";
+        }
+
+        // new line and tab indent to better view parse tree
+        osStream << "\n";
+        std::string prePrintPlus = prePrint + "    ";
+
+        // calls itself over and over until i is == to size of nodeVector
+        for (int i = 0; i < static_cast<int>(nodeVector.size()); i++) {
+            nodeVector[i]->print(osStream, prePrintPlus);
+        }
     }
 };
- 
-// ═══════════════════════════════════════════════════════════════════
-//  SLR PARSER
-// ═══════════════════════════════════════════════════════════════════
- 
-std::shared_ptr<Node> parse(const ParseTable& tbl,
-                            const std::vector<Prod>& G,
-                            const std::vector<Token>& tokens) {
-    std::stack<int>                        ss;
-    std::stack<std::shared_ptr<Node>>      ns;
-    ss.push(0);
-    int pos=0;
+
+//
+std::shared_ptr<Node> parseFunction(const ParseTable& parseTable, const std::vector<grammarRule>& grammarRuleVector, const std::vector<Token>& tokens) {
+    std::stack<int> stateStack;
+    std::stack<std::shared_ptr<Node>> nodeStack;
+    stateStack.push(0);
+    int positionInt=0;
  
     while (true) {
-        int s=ss.top();
-        Tokens   t=tokens[pos].type;
-        auto it=tbl.act[s].find(t);
-        if (it==tbl.act[s].end()) {
-            std::ostringstream e;
-            e << "Syntax error at row " << tokens[pos].row
-              << " col " << tokens[pos].col
-              << ": unexpected '" << tokens[pos].lex << "'\n  expected:";
-            for (auto& [tok,_]:tbl.act[s]) e << " " << tname(tok);
-            throw std::runtime_error(e.str());
+        int stackInt=stateStack.top();
+        Tokens ToK=tokens[positionInt].type;
+
+        if (parseTable.actionTable[stackInt].find(ToK) == parseTable.actionTable[stackInt].end()) {
+            std::cout << "Bad Input: lexeme " << tokens[positionInt].lex << " row " << tokens[positionInt].row << " column " << tokens[positionInt].column  << "\n";
+            return nullptr;
         }
-        auto& a=it->second;
-        if (a.kind==ActionMoves::SHIFT) {
-            ns.push(std::make_shared<Node>(tname(t), tokens[pos].lex));
-            ss.push(a.val); pos++;
-        } else if (a.kind==ActionMoves::REDUCE) {
-            auto& p=G[a.val];
-            auto node=std::make_shared<Node>(ntname(p.lhs));
-            int len=(int)p.rhs.size();
-            std::vector<std::shared_ptr<Node>> ch(len);
-            for (int i=len-1;i>=0;i--) { ch[i]=ns.top(); ns.pop(); ss.pop(); }
-            node->ch=std::move(ch);
-            ns.push(node);
-            auto gi=tbl.go[ss.top()].find(p.lhs);
-            if (gi==tbl.go[ss.top()].end())
-                throw std::runtime_error("Missing goto for "+ntname(p.lhs));
-            ss.push(gi->second);
-        } else { // ACCEPT
-            auto root=std::make_shared<Node>("Program");
-            root->ch.push_back(ns.top());
-            return root;
+
+        auto& anAuto= parseTable.actionTable[stackInt].find(ToK)->second;
+
+        if (anAuto.AM == ActionMoves::SHIFT) {
+            nodeStack.push(std::make_shared<Node>(tokenName(ToK), tokens[positionInt].lex));
+            stateStack.push(anAuto.value); positionInt++;
+        } else if (anAuto.AM == ActionMoves::REDUCE) {
+
+            auto& anotherAuto=grammarRuleVector[anAuto.value];
+
+            auto node = std::make_shared<Node>(nonTerminalName(anotherAuto.leftHS));
+
+            std::vector<std::shared_ptr<Node>> nodeVector(static_cast<int>(anotherAuto.RightHS.size()));
+
+            for (int i = static_cast<int>(anotherAuto.RightHS.size()) -1; i >= 0 ; i--) {
+                nodeVector[i] = nodeStack.top();
+                nodeStack.pop();
+                stateStack.pop();
+            }
+
+            node->nodeVector=std::move(nodeVector);
+            nodeStack.push(node);
+            auto gi=parseTable.goToTable[stateStack.top()].find(anotherAuto.leftHS);
+
+            if (gi==parseTable.goToTable[stateStack.top()].end()) {
+                std::cout << "Missing goto for "+nonTerminalName(anotherAuto.leftHS) << "\n";
+            }
+            stateStack.push(gi->second);
+        } else {
+            auto programStart=std::make_shared<Node>("Program");
+            programStart->nodeVector.push_back(nodeStack.top());
+            return programStart;
         }
     }
 }
  
-// ═══════════════════════════════════════════════════════════════════
-//  MAIN
-// ═══════════════════════════════════════════════════════════════════
- 
-int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <lexer_output_file> [--tree]\n";
-        return 1;
-    }
-    bool printTree = (argc >= 3 && std::string(argv[2]) == "--tree");
- 
-    std::cout << "Building SLR table...\n";
-    SLRBuilder builder;
-    std::cout << "Done. " << builder.tbl.n << " states.\n\n";
- 
+int main(int argc, char *argv[]) {
+
     try {
-        auto tokens = readLexerFile(argv[1]);
-        auto tree   = parse(builder.tbl, builder.G, tokens);
-        std::cout << "Input accepted.\n";
-        if (printTree) tree->print(std::cout);
+        SLRBuilder builder;
+        auto tokens= readLexerFile(argv[1]);
+        auto tree= parseFunction(builder.table, builder.grammar, tokens);
+        tree->print(std::cout);
+
     } catch (const std::exception& e) {
+
         std::cout << e.what() << "\n";
         return 1;
     }
+
     return 0;
 }

@@ -315,7 +315,7 @@ public class MyDisasterResponder extends DisasterResponder {
                     String pathFinder = PathFindingQueue.take();
                     String[] messageInUse = pathFinder.split(" ");
                     String temp;
-                    temp = BidrectionalDijkstra(parseLong(messageInUse[0]), parseLong(messageInUse[1]));
+                    temp = BFS(parseLong(messageInUse[0]), parseLong(messageInUse[1]));
                     if(temp != null) {
                         Message n = new Message("PATH|VEHICLE|" + messageInUse[2] + "|WAYPOINTS|" + temp);
                         outMessageQueue.add(n);
@@ -367,9 +367,6 @@ public class MyDisasterResponder extends DisasterResponder {
                         graph.removeRoad (parseLong(handlingMessage[2]), parseLong(handlingMessage[4]), handlingMessage[6]);
                         System.out.println("Road from " +  handlingMessage[2] + " to " + handlingMessage[4] + " has been blocked");
                     }
-                    if (graph.getStartingMap().containsKey(parseLong(handlingMessage[4]))) {
-                        graph.removeRoad(parseLong(handlingMessage[4]), parseLong(handlingMessage[2]), handlingMessage[6]);
-                    }
                 }
                 break;
 
@@ -405,7 +402,6 @@ public class MyDisasterResponder extends DisasterResponder {
 
             case "WAYPOINT_INVALID":
                 graph.removeRoad(parseLong(handlingMessage[4]), parseLong(handlingMessage[6]), "BLOCKED");
-                graph.removeRoad(parseLong(handlingMessage[6]), parseLong(handlingMessage[4]), "BLOCKED");
                 System.out.println("Road from " +  handlingMessage[4] + " to " + handlingMessage[6] + " has been blocked");
                 rescueMessage = handlingMessage[4] + " " + availableVehicles.get(parseInt(handlingMessage[2])).getFinalDestination() + " " + handlingMessage[2];
                 PathFindingQueue.add(rescueMessage);
@@ -453,6 +449,8 @@ public class MyDisasterResponder extends DisasterResponder {
         catch (IOException | JDOMException e) {
             e.printStackTrace();
         }
+
+        System.out.println(graph.getStartingMap());
 
         for (int i = 0; i < ConfigurationInfo.NUMBER_OF_VEHICLES; i++) {
             availableVehicles.putIfAbsent(i, new VehicleTracker(i));
