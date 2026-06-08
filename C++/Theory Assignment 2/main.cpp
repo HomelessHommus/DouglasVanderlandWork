@@ -454,133 +454,265 @@ struct SLRBuilder {
         grammar = buildGrammar();
         grammarSize = static_cast<int>(grammar.size());
         grammar.push_back(grammarRule{NonTerminals::Program,{static_cast<tokOrNonT>(NonTerminals::Program)},"S'->Program"});
-        calcFirst();
-        calcFollow();
+        calculateFirstToken();
+        calculateFollowToken();
         buildStates();
         buildTable();
     }
 
-    ItemSet closure(ItemSet I) const {
-        bool chg=true;
-        while (chg) { chg=false;
-            for (auto item:std::vector<Item>(I.begin(),I.end())) {
-                auto& rhs=grammar[item.grammarRuleNumber].RightHS;
-                if (item.dotPosition>=(int)rhs.size()) continue;
-                auto* B=std::get_if<NonTerminals>(&rhs[item.dotPosition]); if(!B) continue;
-                for (int pi=0;pi<(int)grammar.size();pi++)
-                    if (grammar[pi].leftHS==*B) if(I.insert({pi,0}).second) chg=true;
+    // this method gets an ItemSet and expands it according to the CFG
+    // this is a seperate method because it is used twice so avoiding duplicate code
+    ItemSet ItemSetExpander (ItemSet itemSet) const {
+        bool whileBool = true;
+
+        while (whileBool) {
+            // set as false because if any if statements are true, this is set back to true and while loop continues
+            whileBool = false;
+
+            for (auto partOfItem : std::vector(itemSet.begin(),itemSet.end())) {
+                auto& RHS = grammar[partOfItem.grammarRuleNumber].RightHS;
+
+                if (partOfItem.dotPosition >= static_cast<int>(RHS.size())) {
+                    continue;
+                }
+                auto* nonTAuto = std::get_if<NonTerminals>(&RHS[partOfItem.dotPosition]);
+
+                if(!nonTAuto) {
+                    continue;
+                }
+
+                for (int a = 0; a < static_cast<int>(grammar.size()); a++)
+                    if (grammar[a].leftHS == *nonTAuto) {
+                        if(itemSet.insert({a,0}).second) {
+                            whileBool = true;
+                        }
+                    }
             }
         }
-        return I;
+        return itemSet;
     }
 
-    ItemSet goTo(const ItemSet& I, const tokOrNonT& X) const {
-        ItemSet mv;
-        for (auto& item:I) {
-            auto& rhs=grammar[item.grammarRuleNumber].RightHS;
-            if (item.dotPosition<(int)rhs.size() && rhs[item.dotPosition]==X)
-                mv.insert({item.grammarRuleNumber,item.dotPosition+1});
+    // method that takes an item and token or non-terminal and returns the next item according to CFG
+    ItemSet goToNextState(const ItemSet& itemSet, const tokOrNonT& tokOrNonTerm) const {
+        ItemSet iSet;
+
+        for (auto& item:itemSet) {
+            auto& rhs = grammar[item.grammarRuleNumber].RightHS;
+
+            if (item.dotPosition < static_cast<int>(rhs.size()) && rhs[item.dotPosition] == tokOrNonTerm) {
+                iSet.insert({item.grammarRuleNumber, item.dotPosition + 1});
+            }
         }
-        return closure(mv);
+        return ItemSetExpander(iSet);
     }
 
-    void calcFirst() {
-        for (int i=0;i<grammarSize;i++) {
-            first[static_cast<NonTerminals>(i)]={};
-            epsilonDecider[static_cast<NonTerminals>(i)]=false;
+    // method that calculates the first tokens after every non-terminal is expanded according to CFG
+    // this is the building block for the FIRST set in the FIRST FOLLOW sets for SLR parser
+    void calculateFirstToken() {
+
+        for (int i = 0; i < grammarSize; i++) {
+            first [static_cast<NonTerminals>(i)] = {};
+            epsilonDecider [static_cast<NonTerminals>(i)] = false;
         }
-        bool chg=true;
-        while (chg) { chg=false;
-            for (int pi=0;pi<grammarSize;pi++) {
-                auto& p=grammar[pi]; auto& fs=first[p.leftHS];
+
+        bool chg = true;
+
+        while (chg) {
+            chg = false;
+
+            for (int pi = 0; pi < grammarSize; pi++) {
+                auto& p = grammar[pi];
+                auto& fs = first[p.leftHS];
+
                 if (p.RightHS.empty()) {
-                    if (!epsilonDecider[p.leftHS]) { epsilonDecider[p.leftHS]=true; chg=true; } continue;
+                    if (!epsilonDecider[p.leftHS]) {
+                        epsilonDecider[p.leftHS] = true;
+                        chg = true;
+                    } continue;
                 }
+
                 for (auto& sym:p.RightHS) {
-                    if (auto* t=std::get_if<Tokens>(&sym)) { if(fs.insert(*t).second) chg=true; break; }
-                    for (auto t:first[std::get<NonTerminals>(sym)]) if(fs.insert(t).second) chg=true;
-                    if (!epsilonDecider[std::get<NonTerminals>(sym)]) break;
+                    if (auto* t = std::get_if<Tokens>(&sym)) {
+                        if(fs.insert(*t).second){
+                        chg = true;
+                    }
+                        break;
+
+                    }
+                    for (auto t:first[std::get<NonTerminals>(sym)]) {
+                        if(fs.insert(t).second) {
+                            chg = true;
+                        }
+                    }
+
+                    if (!epsilonDecider[std::get<NonTerminals>(sym)]) {
+                        break;
+                    }
                 }
+
                 bool allNull=true;
+
                 for (auto& sym:p.RightHS) {
-                    auto* n=std::get_if<NonTerminals>(&sym);
-                    if (!n || !epsilonDecider[*n]) { allNull=false; break; }
-                }
-                if (allNull && !epsilonDecider[p.leftHS]) { epsilonDecider[p.leftHS]=true; chg=true; }
-            }
-        }
-    }
+                    auto* n = std::get_if<NonTerminals>(&sym);
 
-    void calcFollow() {
-        follow[NonTerminals::Program].insert(Tokens::ENDOFFILE);
-        bool chg=true;
-        while (chg) { chg=false;
-            for (int pi=0;pi<grammarSize;pi++) {
-                auto& p=grammar[pi];
-                for (int i=0;i<(int)p.RightHS.size();i++) {
-                    auto* B=std::get_if<NonTerminals>(&p.RightHS[i]); if(!B) continue;
-                    for (int j=i+1;j<(int)p.RightHS.size();j++) {
-                        if (auto* t=std::get_if<Tokens>(&p.RightHS[j])) { if(follow[*B].insert(*t).second) chg=true; break; }
-                        for (auto t:first[std::get<NonTerminals>(p.RightHS[j])]) if(follow[*B].insert(t).second) chg=true;
-                        if (!epsilonDecider[std::get<NonTerminals>(p.RightHS[j])]) break;
+                    if (!n || !epsilonDecider[*n]) {
+                        allNull = false;
+                        break;
                     }
-                    bool restNull=true;
-                    for (int j=i+1;j<(int)p.RightHS.size();j++) {
-                        auto* n=std::get_if<NonTerminals>(&p.RightHS[j]);
-                        if (!n || !epsilonDecider[*n]) { restNull=false; break; }
-                    }
-                    if (restNull) for (auto t:follow[p.leftHS]) if(follow[*B].insert(t).second) chg=true;
+                }
+                if (allNull && !epsilonDecider[p.leftHS]) {
+                    epsilonDecider[p.leftHS] = true;
+                    chg = true;
                 }
             }
         }
     }
 
+    // method that calculates the tokens that appear right after every non-terminal
+    // this is the building block for the FOLLOW set in the FIRST FOLLOW sets for SLR parser
+    void calculateFollowToken() {
+
+        follow [NonTerminals::Program].insert(Tokens::ENDOFFILE);
+        bool whileBool = true;
+
+        while (whileBool) {
+            whileBool = false;
+
+            for (int c = 0; c < grammarSize; c++) {
+                auto& grammarRuleAuto = grammar[c];
+
+                for (int i = 0; i < static_cast<int>(grammarRuleAuto.RightHS.size()); i++) {
+                    auto* nonTerm = std::get_if<NonTerminals>(&grammarRuleAuto.RightHS[i]);
+
+                    if(!nonTerm) {
+                        continue;
+                    }
+
+                    for (int j = i + 1; j < static_cast<int>(grammarRuleAuto.RightHS.size()); j++) {
+                        if (auto* token = std::get_if<Tokens>(&grammarRuleAuto.RightHS[j])) {
+                            if(follow[*nonTerm].insert(*token).second) {
+                                whileBool = true;
+                            }
+                            break;
+                        }
+
+                        for (auto token : first[std::get<NonTerminals>(grammarRuleAuto.RightHS[j])]) {
+                            if(follow[*nonTerm].insert(token).second)
+                                whileBool = true;
+                        }
+
+                        if (!epsilonDecider[std::get<NonTerminals>(grammarRuleAuto.RightHS[j])]) {
+                            break;
+                        }
+                    }
+
+                    bool nullBool = true;
+
+                    for (int j = i + 1; j < static_cast<int>(grammarRuleAuto.RightHS.size()); j++) {
+                        auto* nonTermAuto = std::get_if<NonTerminals>(&grammarRuleAuto.RightHS[j]);
+                        if (!nonTermAuto || !epsilonDecider[*nonTermAuto]) {
+                            nullBool = false;
+                            break;
+                        }
+                    }
+
+                    if (nullBool) {
+                        for (auto tokensAuto : follow[grammarRuleAuto.leftHS]) {
+                            if(follow[*nonTerm].insert(tokensAuto).second) {
+                                whileBool = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // method that constructs all states starting from state 0
+    // this is done by calling the goToNextState method recursively and adding it to the list if not seen before
+    // ends up with 130 states based on the CFG
     void buildStates() {
-        ItemSet s0=closure({{grammarSize,0}});
-        states.push_back(s0); stateNumberMap[s0]=0;
-        for (int si=0;si<(int)states.size();si++) {
-            std::set<tokOrNonT> syms;
-            for (auto& item:states[si]) {
-                auto& rhs=grammar[item.grammarRuleNumber].RightHS;
-                if (item.dotPosition<(int)rhs.size()) syms.insert(rhs[item.dotPosition]);
+        ItemSet state0 = ItemSetExpander({{grammarSize,0}});
+        states.push_back(state0);
+        stateNumberMap[state0] = 0;
+
+        for (int i = 0; i < static_cast<int>(states.size()); i++) {
+            std::set<tokOrNonT> tokOrNonTSet;
+
+            for (auto& item:states[i]) {
+                auto& RHS = grammar[item.grammarRuleNumber].RightHS;
+
+                if (item.dotPosition < static_cast<int>(RHS.size())) {
+                    tokOrNonTSet.insert(RHS[item.dotPosition]);
+                }
             }
-            for (auto& X:syms) {
-                ItemSet g=goTo(states[si],X);
-                if (g.empty()) continue;
-                if (!stateNumberMap.count(g)) { stateNumberMap[g]=(int)states.size(); states.push_back(g); }
+
+            for (auto& tokOrNonTAuto:tokOrNonTSet) {
+                ItemSet itemSet = goToNextState(states[i],tokOrNonTAuto);
+
+                if (itemSet.empty()) {
+                    continue;
+                }
+
+                if (!stateNumberMap.count(itemSet)) {
+                    stateNumberMap[itemSet] = static_cast<int>(states.size());
+                    states.push_back(itemSet);
+                }
             }
         }
     }
 
+    // method that fills in action and goto tables by calling goToNextState recursively
     void buildTable() {
-        auto setAct = [&](int s, Tokens t, Action a) {
-            auto it=table.actionTable[s].find(t);
-            if (it!=table.actionTable[s].end()) {
-                if (it->second.AM==a.AM && it->second.value==a.value) return;
-                throw std::runtime_error(
-                    "SLR conflict state "+std::to_string(s)+" on "+tokenName(t)+
-                    "\n  have: "+(it->second.AM==ActionMoves::SHIFT?"SHIFT ":"REDUCE ")+std::to_string(it->second.value)+
-                    "\n  new:  "+(a.AM==ActionMoves::SHIFT?"SHIFT ":"REDUCE ")+std::to_string(a.value));
+
+        // errorAuto function to handle conflicts
+        // if 2 actions take the same cell, prints an error
+        auto errorAuto = [&](int i, Tokens tok, Action act) {
+            auto tokInAct = table.actionTable[i].find(tok);
+
+            if (tokInAct != table.actionTable[i].end()) {
+                if (tokInAct -> second.AM == act.AM && tokInAct -> second.value == act.value) {
+                    return;
+                }
+                throw std::runtime_error("SLR conflict state " + std::to_string(i)+" on " + tokenName(tok));
+
             }
-            table.actionTable[s][t]=a;
+            table.actionTable[i][tok] = act;
         };
 
-        int b=static_cast<int>(states.size());
-        table.stateNumber=b; table.actionTable.resize(b); table.goToTable.resize(b);
-        for (int si=0;si<b;si++) {
-            for (auto& item:states[si]) {
-                auto& RHS=grammar[item.grammarRuleNumber].RightHS;
-                if (item.dotPosition<(int)RHS.size()) {
-                    auto& sym=RHS[item.dotPosition];
-                    ItemSet g=goTo(states[si],sym);
-                    if (g.empty()) continue;
-                    int tgt=stateNumberMap.at(g);
-                    if (auto* t=std::get_if<Tokens>(&sym)) setAct(si,*t,{ActionMoves::SHIFT,tgt});
-                    else table.goToTable[si][std::get<NonTerminals>(sym)]=tgt;
-                } else {
-                    if (item.grammarRuleNumber==grammarSize) setAct(si,Tokens::ENDOFFILE,{ActionMoves::ACCEPT,0});
-                    else for (auto t:follow.at(grammar[item.grammarRuleNumber].leftHS))
-                        setAct(si,t,{ActionMoves::REDUCE,item.grammarRuleNumber});
+        int size = static_cast<int>(states.size());
+        table.stateNumber = size;
+        table.actionTable.resize(size);
+        table.goToTable.resize(size);
+
+        for (int a = 0; a < size; a++) {
+            for (auto& item : states[a]) {
+                auto& RHS = grammar[item.grammarRuleNumber].RightHS;
+                if (item.dotPosition < static_cast<int>(RHS.size())) {
+
+                    auto& variantSymbol = RHS[item.dotPosition];
+                    ItemSet g = goToNextState(states[a], variantSymbol);
+                    if (g.empty()) {
+                        continue;
+                    }
+                    int target = stateNumberMap.at(g);
+
+                    if (auto* t = std::get_if<Tokens>(&variantSymbol)) {
+                        errorAuto(a, *t, {ActionMoves::SHIFT, target});
+                    }
+                    else {
+                        table.goToTable[a][std::get<NonTerminals>(variantSymbol)] = target;
+                    }
+
+                }
+                else {
+                    if (item.grammarRuleNumber==grammarSize) {
+                        errorAuto(a, Tokens::ENDOFFILE,{ActionMoves::ACCEPT,0});
+                    }
+                    else {
+                        for (auto tokens : follow.at(grammar[item.grammarRuleNumber].leftHS))
+                            errorAuto(a, tokens, {ActionMoves::REDUCE,item.grammarRuleNumber});
+                    }
                 }
             }
         }
@@ -630,17 +762,20 @@ struct Node {
     }
 };
 
-//
+// the actual parser using all the rules and grammar defined earlier
+// takes a parseTable, vector of grammarRules, and vector of tokens to use
 std::shared_ptr<Node> parseFunction(const ParseTable& parseTable, const std::vector<grammarRule>& grammarRuleVector, const std::vector<Token>& tokens) {
     std::stack<int> stateStack;
     std::stack<std::shared_ptr<Node>> nodeStack;
     stateStack.push(0);
     int positionInt=0;
- 
+
+    // while true so it goes through whole lexor file recursively
     while (true) {
         int stackInt=stateStack.top();
         Tokens ToK=tokens[positionInt].type;
 
+        // error detection for inputs that don't fit the rules
         if (parseTable.actionTable[stackInt].find(ToK) == parseTable.actionTable[stackInt].end()) {
             std::cout << "Bad Input: lexeme " << tokens[positionInt].lex << " row " << tokens[positionInt].row << " column " << tokens[positionInt].column  << "\n";
             return nullptr;
@@ -648,9 +783,12 @@ std::shared_ptr<Node> parseFunction(const ParseTable& parseTable, const std::vec
 
         auto& anAuto= parseTable.actionTable[stackInt].find(ToK)->second;
 
+        // Shift action
         if (anAuto.AM == ActionMoves::SHIFT) {
             nodeStack.push(std::make_shared<Node>(tokenName(ToK), tokens[positionInt].lex));
             stateStack.push(anAuto.value); positionInt++;
+
+            // reduce action
         } else if (anAuto.AM == ActionMoves::REDUCE) {
 
             auto& anotherAuto=grammarRuleVector[anAuto.value];
@@ -669,12 +807,12 @@ std::shared_ptr<Node> parseFunction(const ParseTable& parseTable, const std::vec
             nodeStack.push(node);
             auto gi=parseTable.goToTable[stateStack.top()].find(anotherAuto.leftHS);
 
-            if (gi==parseTable.goToTable[stateStack.top()].end()) {
-                std::cout << "Missing goto for "+nonTerminalName(anotherAuto.leftHS) << "\n";
+            if (gi == parseTable.goToTable[stateStack.top()].end()) {
+                std::cout << "Missing goto for " + nonTerminalName(anotherAuto.leftHS) << "\n";
             }
             stateStack.push(gi->second);
         } else {
-            auto programStart=std::make_shared<Node>("Program");
+            auto programStart = std::make_shared<Node>("Program");
             programStart->nodeVector.push_back(nodeStack.top());
             return programStart;
         }
@@ -683,17 +821,17 @@ std::shared_ptr<Node> parseFunction(const ParseTable& parseTable, const std::vec
  
 int main(int argc, char *argv[]) {
 
-    try {
-        SLRBuilder builder;
-        auto tokens= readLexerFile(argv[1]);
-        auto tree= parseFunction(builder.table, builder.grammar, tokens);
-        tree->print(std::cout);
+    // SLRBuilder that creates all rules and tables
+    SLRBuilder builder;
 
-    } catch (const std::exception& e) {
+    // reading in the lexor file (has to be the file from vand0475 lexor because of formatting)
+    auto tokens= readLexerFile(argv[1]);
 
-        std::cout << e.what() << "\n";
-        return 1;
-    }
+    // does the parsing of the tokens with the built grammar
+    auto tree= parseFunction(builder.table, builder.grammar, tokens);
+
+    // prints created tree with print function
+    tree -> print(std::cout);
 
     return 0;
 }
