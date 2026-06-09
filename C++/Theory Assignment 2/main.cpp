@@ -6,7 +6,6 @@
 #include <set>
 #include <stack>
 #include <variant>
-#include <stdexcept>
 #include <algorithm>
 #include <memory>
 
@@ -39,7 +38,44 @@ enum class Tokens {
     RIGHTCURLYBRACKET,
     COLON,
     ENDOFFILE,
-    UNKNOWN
+    UNKNOWN,
+    TOKEN
+};
+
+// enum class of the non-terminals defined in the CFG
+enum class NonTerminals {
+    Program,
+    ClassDeclarationList,
+    ClassDeclaration,
+    AccessSpecifierSections,
+    AccessSpecifierSection,
+    AccessSpecifier,
+    MemberList,
+    MemberDeclaration,
+    VariableDeclaration,
+    VariableList,
+    FunctionDeclaration,
+    ParameterList,
+    Parameter,
+    VariableType,
+    CodeBlock,
+    StatementList,
+    Statement,
+    MatchedStatement,
+    UnmatchedStatement,
+    NonIfStatement,
+    Declaration,
+    DeclarationEnd,
+    ExpressionStatement,
+    WhileStatement,
+    DoWhileStatement,
+    ForStatement,
+    InsideForStatement,
+    ReturnStatement,
+    Expression,
+    PostfixExpression,
+    PrimaryExpression,
+    ArgumentList
 };
 
 // used to print the token from the lexor in the parser tree
@@ -190,11 +226,9 @@ std::vector<Token> readLexerFile(const std::string& lexorOutput) {
                 type=it->second;
             }
         }
-        else {
+        else if (typeString == "Unknown") {
             type=Tokens::UNKNOWN;
-        }
-
-        if (type == Tokens::UNKNOWN) {
+            std::cout << "Unknown Token Parsed: lexeme = " + lex << "\n";
             continue;
         }
 
@@ -215,41 +249,7 @@ std::vector<Token> readLexerFile(const std::string& lexorOutput) {
     return tokens;
 }
 
-// enum class of the non-terminals defined in the CFG
-enum class NonTerminals {
-    Program,
-    ClassDeclarationList,
-    ClassDeclaration,
-    AccessSpecifierSections,
-    AccessSpecifierSection,
-    AccessSpecifier,
-    MemberList,
-    MemberDeclaration,
-    VariableDeclaration,
-    VariableList,
-    FunctionDeclaration,
-    ParameterList,
-    Parameter,
-    VariableType,
-    CodeBlock,
-    StatementList,
-    Statement,
-    MatchedStatement,
-    UnmatchedStatement,
-    NonIfStatement,
-    Declaration,
-    DeclarationEnd,
-    ExpressionStatement,
-    WhileStatement,
-    DoWhileStatement,
-    ForStatement,
-    InsideForStatement,
-    ReturnStatement,
-    Expression,
-    PostfixExpression,
-    PrimaryExpression,
-    ArgumentList
-};
+
 
 // used to label the new part of the parse tree.
 // is the same thing as the class above just as a char array
@@ -497,9 +497,9 @@ struct SLRBuilder {
         ItemSet iSet;
 
         for (auto& item:itemSet) {
-            auto& rhs = grammar[item.grammarRuleNumber].RightHS;
+            auto& RHS = grammar[item.grammarRuleNumber].RightHS;
 
-            if (item.dotPosition < static_cast<int>(rhs.size()) && rhs[item.dotPosition] == tokOrNonTerm) {
+            if (item.dotPosition < static_cast<int>(RHS.size()) && RHS[item.dotPosition] == tokOrNonTerm) {
                 iSet.insert({item.grammarRuleNumber, item.dotPosition + 1});
             }
         }
@@ -515,33 +515,33 @@ struct SLRBuilder {
             epsilonDecider [static_cast<NonTerminals>(i)] = false;
         }
 
-        bool chg = true;
+        bool whileBool = true;
 
-        while (chg) {
-            chg = false;
+        while (whileBool) {
+            whileBool = false;
 
-            for (int pi = 0; pi < grammarSize; pi++) {
-                auto& p = grammar[pi];
-                auto& fs = first[p.leftHS];
+            for (int a = 0; a < grammarSize; a++) {
+                auto& grammarRuleAuto = grammar[a];
+                auto& tokenSetAuto = first[grammarRuleAuto.leftHS];
 
-                if (p.RightHS.empty()) {
-                    if (!epsilonDecider[p.leftHS]) {
-                        epsilonDecider[p.leftHS] = true;
-                        chg = true;
+                if (grammarRuleAuto.RightHS.empty()) {
+                    if (!epsilonDecider[grammarRuleAuto.leftHS]) {
+                        epsilonDecider[grammarRuleAuto.leftHS] = true;
+                        whileBool = true;
                     } continue;
                 }
 
-                for (auto& sym:p.RightHS) {
+                for (auto& sym:grammarRuleAuto.RightHS) {
                     if (auto* t = std::get_if<Tokens>(&sym)) {
-                        if(fs.insert(*t).second){
-                        chg = true;
+                        if(tokenSetAuto.insert(*t).second){
+                        whileBool = true;
                     }
                         break;
 
                     }
                     for (auto t:first[std::get<NonTerminals>(sym)]) {
-                        if(fs.insert(t).second) {
-                            chg = true;
+                        if(tokenSetAuto.insert(t).second) {
+                            whileBool = true;
                         }
                     }
 
@@ -552,17 +552,17 @@ struct SLRBuilder {
 
                 bool allNull=true;
 
-                for (auto& sym:p.RightHS) {
-                    auto* n = std::get_if<NonTerminals>(&sym);
+                for (auto& tONTSymbol:grammarRuleAuto.RightHS) {
+                    auto* nonTermAuto = std::get_if<NonTerminals>(&tONTSymbol);
 
-                    if (!n || !epsilonDecider[*n]) {
+                    if (!nonTermAuto || !epsilonDecider[*nonTermAuto]) {
                         allNull = false;
                         break;
                     }
                 }
-                if (allNull && !epsilonDecider[p.leftHS]) {
-                    epsilonDecider[p.leftHS] = true;
-                    chg = true;
+                if (allNull && !epsilonDecider[grammarRuleAuto.leftHS]) {
+                    epsilonDecider[grammarRuleAuto.leftHS] = true;
+                    whileBool = true;
                 }
             }
         }
@@ -674,7 +674,7 @@ struct SLRBuilder {
                 if (tokInAct -> second.AM == act.AM && tokInAct -> second.value == act.value) {
                     return;
                 }
-                throw std::runtime_error("SLR conflict state " + std::to_string(i)+" on " + tokenName(tok));
+                std::cout << "SLR conflict state " + std::to_string(i)+" on " + tokenName(tok) << '\n';
 
             }
             table.actionTable[i][tok] = act;
@@ -777,7 +777,7 @@ std::shared_ptr<Node> parseFunction(const ParseTable& parseTable, const std::vec
 
         // error detection for inputs that don't fit the rules
         if (parseTable.actionTable[stackInt].find(ToK) == parseTable.actionTable[stackInt].end()) {
-            std::cout << "Bad Input: lexeme " << tokens[positionInt].lex << " row " << tokens[positionInt].row << " column " << tokens[positionInt].column  << "\n";
+            std::cout << "Bad Input: lexeme = " << tokens[positionInt].lex << " row = " << tokens[positionInt].row << " column = " << tokens[positionInt].column  << "\n";
             return nullptr;
         }
 

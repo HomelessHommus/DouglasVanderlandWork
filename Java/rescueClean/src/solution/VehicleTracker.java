@@ -10,6 +10,7 @@ public class VehicleTracker {
     private String finalDestination;
     private String startDestination;
     private boolean inUse =  false;
+    private boolean destroyed = false;
     private String position;
     private String rescuePosition;
     List<Long> path = new ArrayList<>();
@@ -57,6 +58,13 @@ public class VehicleTracker {
     public void addPath(Long key){
         path.add(key);
     }
+    public boolean getDestroyed() {
+        return destroyed;
+    }
+
+    public void setDestroyed(boolean destroyed) {
+        this.destroyed = destroyed;
+    }
     public String getPathString(){
         Collections.reverse(path);
 
@@ -68,4 +76,6 @@ public class VehicleTracker {
         pathString.deleteCharAt(pathString.length() - 1);
         return pathString.toString();
     }
+
+
 }

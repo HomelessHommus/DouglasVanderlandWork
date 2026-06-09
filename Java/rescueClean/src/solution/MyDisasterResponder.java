@@ -121,6 +121,7 @@ public class MyDisasterResponder extends DisasterResponder {
 
     public String BidrectionalDijkstra (Long startBuilding, Long endBuilding) {
 
+
         System.out.println("Path finding started from " + startBuilding + " to " + endBuilding);
         ConcurrentHashMap<Long, Double> distanceForward = new ConcurrentHashMap<>();
         ConcurrentHashMap<Long, Double> distanceBackward = new ConcurrentHashMap<>();
@@ -140,6 +141,21 @@ public class MyDisasterResponder extends DisasterResponder {
         Long meetingPoint = null;
 
         while (!forwardPriQ.isEmpty() && !backwardPriQ.isEmpty()) {
+
+//            if (!availableVehicles.containsKey(vehicleToUse)) {
+//                System.out.println("Path finding cancelled, vehicle no longer available");
+//                break;
+//            }
+//            if (!graph.getStartingMap().containsKey(startBuilding)) {
+//                System.out.println("Path finding cancelled, start building destroyed");
+//                break;
+//            }
+//            if (!graph.getStartingMap().containsKey(endBuilding)) {
+//                System.out.println("Path finding cancelled, end building destroyed");
+//                break;
+//            }
+
+            if (availableVehicles.containsKey(current)) {}
 
             CurrentLocation forward = forwardPriQ.poll();
             Long forwardNode = forward.Building;
@@ -309,31 +325,69 @@ public class MyDisasterResponder extends DisasterResponder {
     }
 
     public void threadControl() {
+//        executor.submit(() -> {
+//                while (true) {
+//                    String pathFinder = PathFindingQueue.take();
+//                    System.out.println(pathFinder);
+//                    String[] messageInUse = pathFinder.split(" ");
+//                    String temp;
+//                    temp = BidrectionalDijkstra(parseLong(messageInUse[0]), parseLong(messageInUse[1]));
+//                    if (temp != null) {
+//                        Message n = new Message("PATH|VEHICLE|" + messageInUse[2] + "|WAYPOINTS|" + temp);
+//                        outMessageQueue.add(n);
+//                    } else {
+//                        if (!Objects.equals(messageInUse[1], "1")) {
+//                            System.out.println("Path not found from " + messageInUse[0] + " to " + messageInUse[1]);
+//                            if (!Objects.equals(availableVehicles.get(parseInt(messageInUse[2])).getPosition(), "1")) {
+//                                rescueMessage = availableVehicles.get(parseInt(messageInUse[2])).getPosition() + " " + origin + " " + messageInUse[2];
+//                                PathFindingQueue.add(rescueMessage);
+//                            }
+//                        }
+//                    }
+//                }
+//        });
+
         executor.submit(() -> {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
-                    String pathFinder = PathFindingQueue.take();
-                    String[] messageInUse = pathFinder.split(" ");
-                    String temp;
-                    temp = BFS(parseLong(messageInUse[0]), parseLong(messageInUse[1]));
-                    if(temp != null) {
-                        Message n = new Message("PATH|VEHICLE|" + messageInUse[2] + "|WAYPOINTS|" + temp);
-                        outMessageQueue.add(n);
+                    String pathFinder;
+                    try {
+                        pathFinder = PathFindingQueue.take();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        System.out.println("PathFinding thread interrupted");
+                        break;
                     }
-                    else {
-                        if(!Objects.equals(messageInUse[1], "1")) {
-                            System.out.println("Path not found from " + messageInUse[0] +  " to " + messageInUse[1]);
-                            if(!Objects.equals(availableVehicles.get(parseInt(messageInUse[2])).getPosition(), "1")) {
-                                rescueMessage = availableVehicles.get(parseInt(messageInUse[2])).getPosition() + " " + origin + " " + messageInUse[2];
-                                PathFindingQueue.add(rescueMessage);
+
+                    String[] messageInUse = pathFinder.split(" ");
+
+                    try {
+                        String temp = BFS(parseLong(messageInUse[0]), parseLong(messageInUse[1]));
+                        if (temp != null) {
+                            Message m = new Message("PATH|VEHICLE|" + messageInUse[2] + "|WAYPOINTS|" + temp);
+                            outMessageQueue.add(m);
+
+                        } else {
+                            System.out.println("Path not found from " + messageInUse[0] + " to " + messageInUse[1]);
+
+                            if (!messageInUse[1].equals(origin)) {
+                                VehicleTracker vehicle = availableVehicles.get(parseInt(messageInUse[2]));
+                                if (vehicle != null) {
+                                    String position = vehicle.getPosition();
+                                    if (position != null && !position.equals(origin)) {
+                                        String returnMessage = position + " " + origin + " " + messageInUse[2];
+                                        System.out.println("Rerouting vehicle " + messageInUse[2] + " home");
+                                        PathFindingQueue.add(returnMessage);
+                                    }
+                                }
                             }
                         }
+                    } catch (Exception e) {
+                        System.out.println("Error during pathfinding");
                     }
                 }
-            }
-            catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                System.out.println("PathFinder thread interrupted");
+            } catch (Exception e) {
+                System.out.println("PathFinding thread dead");
             }
         });
     }
@@ -348,16 +402,17 @@ public class MyDisasterResponder extends DisasterResponder {
             case "RESCUE":
                 for (Integer key : availableVehicles.keySet()) {
                     if (!availableVehicles.get(key).getInUse()) {
-                        vehicleToUse = key;
-                        availableVehicles.get(key).setInUse(true);
-                        break;
+                        if (!availableVehicles.get(key).getDestroyed()) {
+                            vehicleToUse = key;
+                            availableVehicles.get(key).setInUse(true);
+                            break;
+                        }
                     }
                 }
                 rescueMessage = origin + " " + handlingMessage[2] + " " + vehicleToUse;
                 availableVehicles.get(vehicleToUse).setFinalDestination(handlingMessage[2]);
                 availableVehicles.get(vehicleToUse).setStartDestination(origin);
                 availableVehicles.get(vehicleToUse).setRescuePosition(handlingMessage[2]);
-                availableVehicles.get(vehicleToUse).addPath(Long.valueOf(origin));
                 PathFindingQueue.add(rescueMessage);
                 break;
 
@@ -378,25 +433,28 @@ public class MyDisasterResponder extends DisasterResponder {
                 break;
 
             case "PATH_INVALID":
-                if (!handlingMessage[3].equals("INVALID_STARTING_POINT")) {
-                    rescueMessage = availableVehicles.get(parseInt(handlingMessage[2])).getPosition() + " " + origin + " " + parseInt(handlingMessage[2]);
-                    availableVehicles.get(parseInt(handlingMessage[2])).setFinalDestination(origin);
-                    availableVehicles.get(parseInt(handlingMessage[2])).setStartDestination(availableVehicles.get(parseInt(handlingMessage[2])).getPosition());
-                    PathFindingQueue.add(rescueMessage);
-                    System.out.println(availableVehicles.get(parseInt(handlingMessage[2])).getPosition());
+                if (!handlingMessage[3].equals("INVALID_STARTING_POINT") ) {
+                    if (!handlingMessage[3].equals("DESTROYED")) {
+                        rescueMessage = availableVehicles.get(parseInt(handlingMessage[2])).getPosition() + " " + origin + " " + parseInt(handlingMessage[2]);
+                        availableVehicles.get(parseInt(handlingMessage[2])).setFinalDestination(origin);
+                        availableVehicles.get(parseInt(handlingMessage[2])).setStartDestination(availableVehicles.get(parseInt(handlingMessage[2])).getPosition());
+                        PathFindingQueue.add(rescueMessage);
+                        System.out.println(availableVehicles.get(parseInt(handlingMessage[2])).getPosition());
 
-                    for (Integer key : availableVehicles.keySet()) {
-                        if (!availableVehicles.get(key).getInUse()) {
-                            vehicleToUse = key;
-                            availableVehicles.get(key).setInUse(true);
-                            break;
+                        for (Integer key : availableVehicles.keySet()) {
+                            if (!availableVehicles.get(key).getInUse()) {
+                                vehicleToUse = key;
+                                availableVehicles.get(key).setInUse(true);
+                                break;
+                            }
                         }
+                        rescueMessage = origin + " " + availableVehicles.get(parseInt(handlingMessage[2])).getRescuePosition() + " " + vehicleToUse;
+                        availableVehicles.get(vehicleToUse).setFinalDestination(availableVehicles.get(parseInt(handlingMessage[2])).getRescuePosition());
+                        availableVehicles.get(vehicleToUse).setStartDestination(origin);
+                        PathFindingQueue.add(rescueMessage);
+                        break;
                     }
-                    rescueMessage = origin + " " + availableVehicles.get(parseInt(handlingMessage[2])).getRescuePosition() + " " + vehicleToUse;
-                    availableVehicles.get(vehicleToUse).setFinalDestination(availableVehicles.get(parseInt(handlingMessage[2])).getRescuePosition());
-                    availableVehicles.get(vehicleToUse).setStartDestination(origin);
-                    PathFindingQueue.add(rescueMessage);
-                    break;
+
                 }
                 break;
 
@@ -421,6 +479,10 @@ public class MyDisasterResponder extends DisasterResponder {
                 }
                 if (handlingMessage[2].equals("ARRIVED")) {
                     availableVehicles.get(parseInt(handlingMessage[1])).setPosition(handlingMessage[4]);
+                }
+                if (handlingMessage[2].equals("DESTROYED")) {
+                    availableVehicles.remove(parseInt(handlingMessage[1]));
+                    System.out.println("Vehicle has been destroyed");
                 }
                 break;
 
@@ -449,8 +511,6 @@ public class MyDisasterResponder extends DisasterResponder {
         catch (IOException | JDOMException e) {
             e.printStackTrace();
         }
-
-        System.out.println(graph.getStartingMap());
 
         for (int i = 0; i < ConfigurationInfo.NUMBER_OF_VEHICLES; i++) {
             availableVehicles.putIfAbsent(i, new VehicleTracker(i));
