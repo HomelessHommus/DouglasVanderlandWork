@@ -33,6 +33,7 @@ public class GraphBuilder {
 
         for (Element e: nodes) {
             long id = Long.parseLong(e.getAttribute("id").getValue());
+            // add a node to HashMap
             g.addBuilding(id);
         }
 
@@ -48,11 +49,13 @@ public class GraphBuilder {
             for (Element d: datas) {
                 if (d.getAttribute("key").getValue().equals("d1")) {
                     double dist = Double.parseDouble(d.getText());
+                    // Add an edge to HashMap
                     g.addRoad(nS, nD, dist);
                 }
             }
         }
         System.out.println("HashMap Built!");
+
         return g;
     }
 }

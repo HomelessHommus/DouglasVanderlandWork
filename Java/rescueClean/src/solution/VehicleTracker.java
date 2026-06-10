@@ -6,6 +6,7 @@ import java.util.List;
 
 public class VehicleTracker {
 
+    // all variables that keep track of vehicle info
     private int id;
     private String finalDestination;
     private String startDestination;
@@ -15,10 +16,12 @@ public class VehicleTracker {
     private String rescuePosition;
     List<Long> path = new ArrayList<>();
 
+    // constructor setting the ID int
     public VehicleTracker(int id) {
         this.id = id;
     }
 
+    // getters and setters for all variables
     public int getId() {
         return id;
     }
@@ -31,6 +34,7 @@ public class VehicleTracker {
     public void setFinalDestination(String finalDestination) {
         this.finalDestination = finalDestination;
     }
+
     public String getStartDestination() {
         return startDestination;
     }
@@ -61,21 +65,10 @@ public class VehicleTracker {
     public boolean getDestroyed() {
         return destroyed;
     }
-
     public void setDestroyed(boolean destroyed) {
         this.destroyed = destroyed;
     }
-    public String getPathString(){
-        Collections.reverse(path);
 
-        StringBuilder pathString = new StringBuilder();
-
-        for (Long key : path) {
-            pathString.append(key).append(",");
-        }
-        pathString.deleteCharAt(pathString.length() - 1);
-        return pathString.toString();
-    }
 
 
 }

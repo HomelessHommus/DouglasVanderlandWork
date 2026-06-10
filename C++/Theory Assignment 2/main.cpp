@@ -12,6 +12,7 @@
 // an enum class of tokens. The delimiters and keywords have been split up so the SLR parser can tell the
 // difference between them
 enum class Tokens {
+
     INT,
     CHAR,
     IF,
@@ -78,66 +79,6 @@ enum class NonTerminals {
     ArgumentList
 };
 
-// used to print the token from the lexor in the parser tree
-std::string tokenName(Tokens input) {
-    switch (input) {
-        case Tokens::INT:
-            return "Keyword";
-        case Tokens::CHAR:
-            return "Keyword";
-        case Tokens::IF:
-            return "Keyword";
-        case Tokens::ELSE:
-            return "Keyword";
-        case Tokens::WHILE:
-            return "Keyword";
-        case Tokens::FOR:
-            return "Keyword";
-        case Tokens::DO:
-            return "Keyword";
-        case Tokens::RETURN:
-            return "Keyword";
-        case Tokens::CLASS:
-            return "Keyword";
-        case Tokens::PUBLIC:
-            return "Keyword";
-        case Tokens::PRIVATE:
-            return "Keyword";
-        case Tokens::PROTECTED:
-            return "Keyword";
-        case Tokens::NEW:
-            return "Keyword";
-        case Tokens::DELETE:
-            return "Keyword";
-        case Tokens::IDENTIFIER:
-            return "Identifier";
-        case Tokens::LITERAL:
-            return "Literal";
-        case Tokens::SEMICOLON:
-            return "Delimiter";
-        case Tokens::COMMA:
-            return "Delimiter";
-        case Tokens::LEFTBRACKET:
-            return "Delimiter";
-        case Tokens::RIGHTBRACKET:
-            return "Delimiter";
-        case Tokens::LEFTSQUAREBRACKET:
-            return "Delimiter";
-        case Tokens::RIGHTSQUAREBRACKET:
-            return "Delimiter";
-        case Tokens::LEFTCURLYBRACKET:
-            return "Delimiter";
-        case Tokens::RIGHTCURLYBRACKET:
-            return "Delimiter";
-        case Tokens::COLON:
-            return "Delimiter";
-        case Tokens::ENDOFFILE:
-            return "$";
-        default:
-            return "unknown token";
-    }
-}
-
 // A struct of name Token to hold info about it
 struct Token {
     Tokens type;
@@ -183,15 +124,16 @@ std::vector<Token> readLexerFile(const std::string& lexorOutput) {
 
     // used to trim the lex output and split it into sections to be used (lex, token type, row, column)
     auto trim = [](std::string trimString) {
-        auto a = trimString.find_last_not_of(' ');
-        return a == std::string::npos ? "" : trimString.substr(0, a+1);
+        auto trimmedSize = trimString.find_last_not_of(' ');
+        return trimmedSize == std::string::npos ? "" : trimString.substr(0, trimmedSize+1);
     };
  
     std::vector<Token> tokens;
     std::string line;
+
     while (std::getline(lexorStream, line)) {
 
-        // this is done because the lexor output has 20 spaces between each section as per the design
+        // this is done because the lexor output has 20 spaces between each section as per the lexor design
         if (line.size() < 42) line.resize(42, ' ');
         std::string lex = trim(line.substr(0, 20));
         std::string typeString = trim(line.substr(21, 20));
@@ -216,14 +158,14 @@ std::vector<Token> readLexerFile(const std::string& lexorOutput) {
         }
         else if (typeString == "Keyword") {
             auto findIt = keywords.find(lex);
-            if (findIt!=keywords.end()) {
+            if (findIt != keywords.end()) {
                 type=findIt->second;
             }
         }
         else if (typeString == "Delimiter") {
             auto it = delimiters.find(lex);
-            if (it!=delimiters.end()) {
-                type=it->second;
+            if (it != delimiters.end()) {
+                type=it -> second;
             }
         }
         else if (typeString == "Unknown") {
@@ -330,10 +272,11 @@ std::vector<grammarRule> buildGrammar() {
     // tokens enum class at the top
     // third parameter is the string. copy and pasted from the CFG
     using nonT = NonTerminals;
+
     addToGrammar(nonT::Program,{NonTe(nonT::ClassDeclarationList)},"Program->ClassDeclarationList");
     addToGrammar(nonT::ClassDeclarationList,{NonTe(nonT::ClassDeclaration)},"ClassDeclarationList->ClassDeclaration");
     addToGrammar(nonT::ClassDeclarationList,{NonTe(nonT::ClassDeclaration),NonTe(nonT::ClassDeclarationList)},"ClassDeclarationList->ClassDeclaration ClassDeclarationList");
-    addToGrammar(nonT::ClassDeclaration,{Tok(Tokens::CLASS),Tok(Tokens::IDENTIFIER),Tok(Tokens::LEFTCURLYBRACKET),NonTe(nonT::AccessSpecifierSections),Tok(Tokens::RIGHTCURLYBRACKET),Tok(Tokens::SEMICOLON)},"ClassDeclaration->classidentifier{ AccessSpecifierSections } ;");
+    addToGrammar(nonT::ClassDeclaration,{Tok(Tokens::CLASS),Tok(Tokens::IDENTIFIER),Tok(Tokens::LEFTCURLYBRACKET),NonTe(nonT::AccessSpecifierSections),Tok(Tokens::RIGHTCURLYBRACKET),Tok(Tokens::SEMICOLON)},"ClassDeclaration->class identifier{ AccessSpecifierSections } ;");
     addToGrammar(nonT::AccessSpecifierSections,{NonTe(nonT::AccessSpecifierSection)},"AccessSpecifierSections->AccessSpecifierSection");
     addToGrammar(nonT::AccessSpecifierSections,{NonTe(nonT::AccessSpecifierSection),NonTe(nonT::AccessSpecifierSections)},"AccessSpecifierSections->AccessSpecifierSection AccessSpecifierSections");
     addToGrammar(nonT::AccessSpecifierSection,{NonTe(nonT::AccessSpecifier),Tok(Tokens::COLON),NonTe(nonT::MemberList)},"AccessSpecifierSection->AccessSpecifier : MemberList");
@@ -394,6 +337,7 @@ std::vector<grammarRule> buildGrammar() {
     addToGrammar(nonT::PrimaryExpression,{Tok(Tokens::DELETE),Tok(Tokens::IDENTIFIER)},"PrimaryExpression->delete identifier");
     addToGrammar(nonT::ArgumentList,{NonTe(nonT::Expression)},"ArgumentList->Expression");
     addToGrammar(nonT::ArgumentList,{NonTe(nonT::Expression),Tok(Tokens::COMMA),NonTe(nonT::ArgumentList)},"ArgumentList->Expression,ArgumentList");
+
     return grammarRules;
 }
 
@@ -410,9 +354,72 @@ struct Item {
     }
 };
 
+// used to print the token from the lexor in the parser tree
+std::string tokenName(Tokens input) {
+    switch (input) {
+        case Tokens::INT:
+            return "Keyword";
+        case Tokens::CHAR:
+            return "Keyword";
+        case Tokens::IF:
+            return "Keyword";
+        case Tokens::ELSE:
+            return "Keyword";
+        case Tokens::WHILE:
+            return "Keyword";
+        case Tokens::FOR:
+            return "Keyword";
+        case Tokens::DO:
+            return "Keyword";
+        case Tokens::RETURN:
+            return "Keyword";
+        case Tokens::CLASS:
+            return "Keyword";
+        case Tokens::PUBLIC:
+            return "Keyword";
+        case Tokens::PRIVATE:
+            return "Keyword";
+        case Tokens::PROTECTED:
+            return "Keyword";
+        case Tokens::NEW:
+            return "Keyword";
+        case Tokens::DELETE:
+            return "Keyword";
+        case Tokens::IDENTIFIER:
+            return "Identifier";
+        case Tokens::LITERAL:
+            return "Literal";
+        case Tokens::SEMICOLON:
+            return "Delimiter";
+        case Tokens::COMMA:
+            return "Delimiter";
+        case Tokens::LEFTBRACKET:
+            return "Delimiter";
+        case Tokens::RIGHTBRACKET:
+            return "Delimiter";
+        case Tokens::LEFTSQUAREBRACKET:
+            return "Delimiter";
+        case Tokens::RIGHTSQUAREBRACKET:
+            return "Delimiter";
+        case Tokens::LEFTCURLYBRACKET:
+            return "Delimiter";
+        case Tokens::RIGHTCURLYBRACKET:
+            return "Delimiter";
+        case Tokens::COLON:
+            return "Delimiter";
+        case Tokens::ENDOFFILE:
+            return "$";
+        default:
+            return "unknown token";
+    }
+}
+
 // a class about the possible moves the parser can do
 enum class ActionMoves {
-    SHIFT, REDUCE, ACCEPT, ERROR
+    SHIFT,
+    REDUCE,
+    ACCEPT,
+    ERROR
 };
 
 // a struct using the action class above
@@ -421,7 +428,7 @@ enum class ActionMoves {
 // for example: SHIFT 14 means parser must shift to state 14
 struct Action {
     ActionMoves AM = ActionMoves::ERROR;
-    int value=-1;
+    int value = -1;
 };
 
 // a struct with info about the SLR parse table
@@ -453,11 +460,11 @@ struct SLRBuilder {
     SLRBuilder() {
         grammar = buildGrammar();
         grammarSize = static_cast<int>(grammar.size());
-        grammar.push_back(grammarRule{NonTerminals::Program,{static_cast<tokOrNonT>(NonTerminals::Program)},"S'->Program"});
+        grammar.push_back(grammarRule{NonTerminals::Program,{static_cast<tokOrNonT>(NonTerminals::Program)},"S' -> Program"});
         calculateFirstToken();
         calculateFollowToken();
         buildStates();
-        buildTable();
+        buildTables();
     }
 
     // this method gets an ItemSet and expands it according to the CFG
@@ -489,11 +496,14 @@ struct SLRBuilder {
                     }
             }
         }
+
         return itemSet;
     }
 
     // method that takes an item and token or non-terminal and returns the next item according to CFG
+    // also a seperate method because it's used more than once
     ItemSet goToNextState(const ItemSet& itemSet, const tokOrNonT& tokOrNonTerm) const {
+
         ItemSet iSet;
 
         for (auto& item:itemSet) {
@@ -578,8 +588,8 @@ struct SLRBuilder {
         while (whileBool) {
             whileBool = false;
 
-            for (int c = 0; c < grammarSize; c++) {
-                auto& grammarRuleAuto = grammar[c];
+            for (int a = 0; a < grammarSize; a++) {
+                auto& grammarRuleAuto = grammar[a];
 
                 for (int i = 0; i < static_cast<int>(grammarRuleAuto.RightHS.size()); i++) {
                     auto* nonTerm = std::get_if<NonTerminals>(&grammarRuleAuto.RightHS[i]);
@@ -663,42 +673,29 @@ struct SLRBuilder {
     }
 
     // method that fills in action and goto tables by calling goToNextState recursively
-    void buildTable() {
-
-        // errorAuto function to handle conflicts
-        // if 2 actions take the same cell, prints an error
-        auto errorAuto = [&](int i, Tokens tok, Action act) {
-            auto tokInAct = table.actionTable[i].find(tok);
-
-            if (tokInAct != table.actionTable[i].end()) {
-                if (tokInAct -> second.AM == act.AM && tokInAct -> second.value == act.value) {
-                    return;
-                }
-                std::cout << "SLR conflict state " + std::to_string(i)+" on " + tokenName(tok) << '\n';
-
-            }
-            table.actionTable[i][tok] = act;
-        };
+    void buildTables() {
 
         int size = static_cast<int>(states.size());
         table.stateNumber = size;
         table.actionTable.resize(size);
         table.goToTable.resize(size);
 
+        // for loop to go through all states, starts at 0 because there is a state 0
+        // either adds item at index a to the action table or go to table
         for (int a = 0; a < size; a++) {
             for (auto& item : states[a]) {
                 auto& RHS = grammar[item.grammarRuleNumber].RightHS;
                 if (item.dotPosition < static_cast<int>(RHS.size())) {
 
                     auto& variantSymbol = RHS[item.dotPosition];
-                    ItemSet g = goToNextState(states[a], variantSymbol);
-                    if (g.empty()) {
+                    ItemSet itemSet = goToNextState(states[a], variantSymbol);
+                    if (itemSet.empty()) {
                         continue;
                     }
-                    int target = stateNumberMap.at(g);
+                    int target = stateNumberMap.at(itemSet);
 
                     if (auto* t = std::get_if<Tokens>(&variantSymbol)) {
-                        errorAuto(a, *t, {ActionMoves::SHIFT, target});
+                        table.actionTable[a][*t] = {ActionMoves::SHIFT, target};
                     }
                     else {
                         table.goToTable[a][std::get<NonTerminals>(variantSymbol)] = target;
@@ -707,11 +704,12 @@ struct SLRBuilder {
                 }
                 else {
                     if (item.grammarRuleNumber==grammarSize) {
-                        errorAuto(a, Tokens::ENDOFFILE,{ActionMoves::ACCEPT,0});
+                        table.actionTable[a][Tokens::ENDOFFILE] = {ActionMoves::ACCEPT,0};
                     }
                     else {
-                        for (auto tokens : follow.at(grammar[item.grammarRuleNumber].leftHS))
-                            errorAuto(a, tokens, {ActionMoves::REDUCE,item.grammarRuleNumber});
+                        for (auto tokens : follow.at(grammar[item.grammarRuleNumber].leftHS)) {
+                            table.actionTable[a][tokens] = {ActionMoves::REDUCE,item.grammarRuleNumber};
+                        }
                     }
                 }
             }
@@ -773,7 +771,7 @@ std::shared_ptr<Node> parseFunction(const ParseTable& parseTable, const std::vec
     // while true so it goes through whole lexor file recursively
     while (true) {
         int stackInt=stateStack.top();
-        Tokens ToK=tokens[positionInt].type;
+        Tokens ToK = tokens[positionInt].type;
 
         // error detection for inputs that don't fit the rules
         if (parseTable.actionTable[stackInt].find(ToK) == parseTable.actionTable[stackInt].end()) {
@@ -803,14 +801,14 @@ std::shared_ptr<Node> parseFunction(const ParseTable& parseTable, const std::vec
                 stateStack.pop();
             }
 
-            node->nodeVector=std::move(nodeVector);
+            node -> nodeVector = std::move(nodeVector);
             nodeStack.push(node);
             auto gi=parseTable.goToTable[stateStack.top()].find(anotherAuto.leftHS);
 
-            if (gi == parseTable.goToTable[stateStack.top()].end()) {
+            if (gi == parseTable.goToTable [stateStack.top()].end()) {
                 std::cout << "Missing goto for " + nonTerminalName(anotherAuto.leftHS) << "\n";
             }
-            stateStack.push(gi->second);
+            stateStack.push (gi->second);
         } else {
             auto programStart = std::make_shared<Node>("Program");
             programStart->nodeVector.push_back(nodeStack.top());

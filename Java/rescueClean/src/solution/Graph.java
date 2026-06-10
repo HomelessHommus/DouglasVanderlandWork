@@ -9,6 +9,12 @@ public class Graph {
 
     private HashMap<Long, List<Road>> startingMap = new HashMap<>();
 
+    // method gets the HashMap for the path algorithms to use
+    public HashMap<Long, List<Road>> getStartingMap() {
+        return startingMap;
+    }
+
+    // methods that add and remove roads and buildings from the HashMap
     public void addBuilding (long i) {
         startingMap.putIfAbsent(i, new ArrayList<>());
     }
@@ -19,10 +25,6 @@ public class Graph {
 
     public void removeBuilding (Long i) {
         startingMap.remove(i);
-    }
-
-    public HashMap<Long, List<Road>> getStartingMap() {
-        return startingMap;
     }
 
     public void removeRoad (Long Building, Long Destination, String Access) {

@@ -12,117 +12,30 @@ import static java.lang.Long.parseLong;
 
 public class MyDisasterResponder extends DisasterResponder {
 
-    // setup variables to refer back to
+    // setup variables to refer back to over the whole program
     String origin;
     Graph graph = new Graph();
     HashMap<Integer, VehicleTracker> availableVehicles = new HashMap<>();
     Integer vehicleToUse = null;
 
     // queue for the path finding messages
+    // the thread assigned to path finding polls from this
     BlockingQueue<String> PathFindingQueue = new LinkedBlockingQueue<>();
 
-    // Maps, Lists, and Variables to store data for the path finding
-    Long Building;
-    double Distance;
-    double newDistance;
-    Long nextBuilding;
-    Long current;
+    // rescue message used to direct the path finding algorithms on where to go
+    // this is out here because multiple things use it across different methods
     String rescueMessage;
 
+    // BELOW ARE THE 2 SOLUTIONS, TO CHANGE SOLUTION GO TO threadControl() JUST BELOW
 
-    // Path finding algorithm, takes a start and end point
-    public String Dijkstra (Long startBuilding, Long endBuilding) {
-        System.out.println("Path finding started from " + startBuilding + " to " + endBuilding);
-        HashMap<Long, Double> totalDistance = new HashMap<>();
-        HashMap<Long, Long> previous = new HashMap<>();
-        List<Long> printingPath = new ArrayList<>();
-        PriorityQueue<CurrentLocation> PQ = new PriorityQueue<>(Comparator.comparingDouble(o -> o.totalDistance));
-        Set<Long> visited = new HashSet<>();
-
-        totalDistance.clear();
-        previous.clear();
-        printingPath.clear();
-        PQ.clear();
-
-        for(Long key : graph.getStartingMap().keySet()) {
-            totalDistance.put(key, Double.MAX_VALUE);
-        }
-
-        totalDistance.put(startBuilding, (double) 0);
-        PQ.add(new CurrentLocation(startBuilding, 0));
-
-        while (!PQ.isEmpty()) {
-
-            CurrentLocation current = PQ.poll();
-            Building = current.Building;
-            Distance = current.totalDistance;
-
-            if (visited.contains(Building)) {
-                continue;
-            }
-            visited.add(Building);
-
-            if (Distance == Double.MAX_VALUE) {
-                continue;
-            }
-
-            if (Objects.equals(Building, endBuilding)) {
-                break;
-            }
-
-            if (Distance > totalDistance.get(Building)) {
-                continue;
-            }
-
-            List<Road> roads = graph.getStartingMap().get(Building);
-
-            if (roads == null) {
-                continue;
-            }
-
-            for (Road road : roads) {
-                if (road.getAccess().equals("open")) {
-                    Long next = road.getDestination();
-                    if(visited.contains(next)) {
-                        continue;
-                    }
-                    if (graph.getStartingMap().containsKey(road.getDestination())) {
-
-                        nextBuilding = road.getDestination();
-                        newDistance = Distance + road.getCost();
-
-                        if (newDistance < totalDistance.getOrDefault(nextBuilding, Double.MAX_VALUE)) {
-                            totalDistance.put(nextBuilding, newDistance);
-                            previous.put(nextBuilding, Building);
-                            PQ.add(new CurrentLocation(nextBuilding, newDistance));
-                        }
-                    }
-                }
-            }
-        }
-
-        printingPath.clear();
-        current = endBuilding;
-        while (current != null) {
-            printingPath.add(current);
-            current = previous.get(current);
-        }
-        Collections.reverse(printingPath);
-
-        StringBuilder path = new StringBuilder();
-
-        for (Long key : printingPath) {
-            path.append(key).append(",");
-        }
-        path.deleteCharAt(path.length() - 1);
-        System.out.println("Path found from " + startBuilding + " to " + endBuilding);
-        return path.toString();
-    }
-
-    public String BidrectionalDijkstra (Long startBuilding, Long endBuilding) {
+    // Bidirectional Dijkstra path finding algorithm
+    // takes in a start and end building as a parameter
+    // THIS IS SOLUTION 1 FOR THE ASSIGNMENT
+    public String BDD (Long startBuilding, Long endBuilding) {
 
 
         System.out.println("Path finding started from " + startBuilding + " to " + endBuilding);
+
         ConcurrentHashMap<Long, Double> distanceForward = new ConcurrentHashMap<>();
         ConcurrentHashMap<Long, Double> distanceBackward = new ConcurrentHashMap<>();
         ConcurrentHashMap<Long, Long> previousNodeForward = new ConcurrentHashMap<>();
@@ -142,21 +55,6 @@ public class MyDisasterResponder extends DisasterResponder {
 
         while (!forwardPriQ.isEmpty() && !backwardPriQ.isEmpty()) {
 
-//            if (!availableVehicles.containsKey(vehicleToUse)) {
-//                System.out.println("Path finding cancelled, vehicle no longer available");
-//                break;
-//            }
-//            if (!graph.getStartingMap().containsKey(startBuilding)) {
-//                System.out.println("Path finding cancelled, start building destroyed");
-//                break;
-//            }
-//            if (!graph.getStartingMap().containsKey(endBuilding)) {
-//                System.out.println("Path finding cancelled, end building destroyed");
-//                break;
-//            }
-
-            if (availableVehicles.containsKey(current)) {}
-
             CurrentLocation forward = forwardPriQ.poll();
             Long forwardNode = forward.Building;
 
@@ -164,8 +62,7 @@ public class MyDisasterResponder extends DisasterResponder {
                 forwardVisited.add(forwardNode);
 
                 if (backwardVisited.contains(forwardNode)) {
-                    double possibleForward = distanceForward.getOrDefault(forwardNode, Double.MAX_VALUE)
-                            + distanceBackward.getOrDefault(forwardNode, Double.MAX_VALUE);
+                    double possibleForward = distanceForward.getOrDefault(forwardNode, Double.MAX_VALUE) + distanceBackward.getOrDefault(forwardNode, Double.MAX_VALUE);
                     if (possibleForward < closestDistance) {
                         closestDistance = possibleForward;
                         meetingPoint = forwardNode;
@@ -197,8 +94,7 @@ public class MyDisasterResponder extends DisasterResponder {
                 backwardVisited.add(backwardNode);
 
                 if (forwardVisited.contains(backwardNode)) {
-                    double possibleBackwards = distanceForward.getOrDefault(backwardNode, Double.MAX_VALUE)
-                            + distanceBackward.getOrDefault(backwardNode, Double.MAX_VALUE);
+                    double possibleBackwards = distanceForward.getOrDefault(backwardNode, Double.MAX_VALUE) + distanceBackward.getOrDefault(backwardNode, Double.MAX_VALUE);
                     if (possibleBackwards < closestDistance) {
                         closestDistance = possibleBackwards;
                         meetingPoint = backwardNode;
@@ -224,7 +120,9 @@ public class MyDisasterResponder extends DisasterResponder {
             }
             double forwardMinimum = forwardPriQ.isEmpty() ? Double.MAX_VALUE : forwardPriQ.peek().totalDistance;
             double backwardMinimum = backwardPriQ.isEmpty() ? Double.MAX_VALUE : backwardPriQ.peek().totalDistance;
-            if (forwardMinimum + backwardMinimum >= closestDistance) break;
+            if (forwardMinimum + backwardMinimum >= closestDistance) {
+                break;
+            }
         }
 
         double bestDistance = Double.MAX_VALUE;
@@ -238,7 +136,9 @@ public class MyDisasterResponder extends DisasterResponder {
             }
         }
 
-        if (meetingPoint == null) return null;
+        if (meetingPoint == null) {
+            return null;
+        }
 
         List<Long> totalPath = new ArrayList<>();
 
@@ -247,6 +147,7 @@ public class MyDisasterResponder extends DisasterResponder {
             totalPath.add(currentBuilding);
             currentBuilding = previousNodeForward.get(currentBuilding);
         }
+
         Collections.reverse(totalPath);
 
         currentBuilding = previousNodeBackward.get(meetingPoint);
@@ -255,7 +156,9 @@ public class MyDisasterResponder extends DisasterResponder {
             currentBuilding = previousNodeBackward.get(currentBuilding);
         }
 
-        if (totalPath.isEmpty()) return null;
+        if (totalPath.isEmpty()) {
+            return null;
+        }
 
         StringBuilder toSend = new StringBuilder();
         for (Long node : totalPath) {
@@ -266,6 +169,9 @@ public class MyDisasterResponder extends DisasterResponder {
         return toSend.toString();
     }
 
+    // BFS path finding algorithm
+    // takes in a start and end building as a parameter
+    // THIS IS SOLUTION 2 FOR THE ASSIGNMENT
     public String BFS (Long startBuilding, Long endBuilding) {
 
         System.out.println("Path finding started from " + startBuilding + " to " + endBuilding);
@@ -285,15 +191,20 @@ public class MyDisasterResponder extends DisasterResponder {
         while (!FIFOQueue.isEmpty()) {
             Long currentBuilding = FIFOQueue.poll();
 
-            if (currentBuilding.equals(endBuilding)) break;
+            if (currentBuilding.equals(endBuilding)) {
+                break;
+            }
 
             List<Road> roads = graph.getStartingMap().get(currentBuilding);
 
-            if (roads == null) continue;
+            if (roads == null) {
+                continue;
+            }
 
             for (Road road : roads) {
                 if (road.getAccess().equals("open")) {
                     Long nextBuilding = road.getDestination();
+
                     if (!visitedBuildings.contains(nextBuilding) && graph.getStartingMap().containsKey(nextBuilding)) {
                         visitedBuildings.add(nextBuilding);
                         previousBuilding.put(nextBuilding, currentBuilding);
@@ -303,7 +214,9 @@ public class MyDisasterResponder extends DisasterResponder {
             }
         }
 
-        if (!previousBuilding.containsKey(endBuilding)) return null;
+        if (!previousBuilding.containsKey(endBuilding)){
+            return null;
+        }
 
         List<Long> pathList = new ArrayList<>();
         Long currentBuilding = endBuilding;
@@ -313,7 +226,9 @@ public class MyDisasterResponder extends DisasterResponder {
         }
         Collections.reverse(pathList);
 
-        if (pathList.isEmpty()) return null;
+        if (pathList.isEmpty()) {
+            return null;
+        }
 
         StringBuilder result = new StringBuilder();
         for (Long node : pathList) {
@@ -324,28 +239,9 @@ public class MyDisasterResponder extends DisasterResponder {
         return result.toString();
     }
 
+    // thread control for the path finding
+    // while loop that is constantly trying to poll the BlockingQueue above
     public void threadControl() {
-//        executor.submit(() -> {
-//                while (true) {
-//                    String pathFinder = PathFindingQueue.take();
-//                    System.out.println(pathFinder);
-//                    String[] messageInUse = pathFinder.split(" ");
-//                    String temp;
-//                    temp = BidrectionalDijkstra(parseLong(messageInUse[0]), parseLong(messageInUse[1]));
-//                    if (temp != null) {
-//                        Message n = new Message("PATH|VEHICLE|" + messageInUse[2] + "|WAYPOINTS|" + temp);
-//                        outMessageQueue.add(n);
-//                    } else {
-//                        if (!Objects.equals(messageInUse[1], "1")) {
-//                            System.out.println("Path not found from " + messageInUse[0] + " to " + messageInUse[1]);
-//                            if (!Objects.equals(availableVehicles.get(parseInt(messageInUse[2])).getPosition(), "1")) {
-//                                rescueMessage = availableVehicles.get(parseInt(messageInUse[2])).getPosition() + " " + origin + " " + messageInUse[2];
-//                                PathFindingQueue.add(rescueMessage);
-//                            }
-//                        }
-//                    }
-//                }
-//        });
 
         executor.submit(() -> {
             try {
@@ -362,7 +258,9 @@ public class MyDisasterResponder extends DisasterResponder {
                     String[] messageInUse = pathFinder.split(" ");
 
                     try {
-                        String temp = BFS(parseLong(messageInUse[0]), parseLong(messageInUse[1]));
+                        // TO CHANGE THE SOLUTION CHANGE ↓ THIS ↓ TO EITHER "BFS" OR "BDD". NOTHING ELSE REQUIRED
+                        String temp =                      BDD
+                                (parseLong(messageInUse[0]), parseLong(messageInUse[1]));
                         if (temp != null) {
                             Message m = new Message("PATH|VEHICLE|" + messageInUse[2] + "|WAYPOINTS|" + temp);
                             outMessageQueue.add(m);
@@ -392,6 +290,7 @@ public class MyDisasterResponder extends DisasterResponder {
         });
     }
 
+    // the main handle method for incoming messages
     protected void handle(Message s) {
 
         String messageToUse = s.text;
@@ -399,6 +298,8 @@ public class MyDisasterResponder extends DisasterResponder {
         String[] handlingMessage = messageToUse.split("\\|");
 
         switch (handlingMessage[0]) {
+            // gets info from the message and adds that to the path finding queue
+            // changes variables in the available vehicles map to keep track of vehicle
             case "RESCUE":
                 for (Integer key : availableVehicles.keySet()) {
                     if (!availableVehicles.get(key).getInUse()) {
@@ -416,6 +317,7 @@ public class MyDisasterResponder extends DisasterResponder {
                 PathFindingQueue.add(rescueMessage);
                 break;
 
+                // deletes a road from the hashmap
             case "ROAD":
                 if (handlingMessage[6].equals("BLOCKED")){
                     if (graph.getStartingMap().containsKey(parseLong(handlingMessage[2]))) {
@@ -425,6 +327,7 @@ public class MyDisasterResponder extends DisasterResponder {
                 }
                 break;
 
+                // deletes a location from the hashmap
             case "LOCATION":
                 if (graph.getStartingMap().containsKey(parseLong(handlingMessage[1]))) {
                     graph.removeBuilding(parseLong(handlingMessage[1]));
@@ -432,6 +335,7 @@ public class MyDisasterResponder extends DisasterResponder {
                 }
                 break;
 
+                // reroutes the vehicle home if this message is seen
             case "PATH_INVALID":
                 if (!handlingMessage[3].equals("INVALID_STARTING_POINT") ) {
                     if (!handlingMessage[3].equals("DESTROYED")) {
@@ -458,6 +362,7 @@ public class MyDisasterResponder extends DisasterResponder {
                 }
                 break;
 
+                // used to reroute the path. deletes the road that was bad midway through the simulation
             case "WAYPOINT_INVALID":
                 graph.removeRoad(parseLong(handlingMessage[4]), parseLong(handlingMessage[6]), "BLOCKED");
                 System.out.println("Road from " +  handlingMessage[4] + " to " + handlingMessage[6] + " has been blocked");
@@ -466,6 +371,8 @@ public class MyDisasterResponder extends DisasterResponder {
                 break;
 
             case "VEHICLE":
+
+                //send vehicle back home because it's at rescue location
                 if (handlingMessage[2].equals("HALTED")) {
                     if (!handlingMessage[4].equals(origin)) {
                         rescueMessage = handlingMessage[4] + " " + origin + " " + handlingMessage[1];
@@ -474,23 +381,31 @@ public class MyDisasterResponder extends DisasterResponder {
                         PathFindingQueue.add(rescueMessage);
                     }
                 }
+
+                // changes the bool variable so vehicle can be used again
                 if (handlingMessage[2].equals("RETURNED")) {
                     availableVehicles.get(parseInt(handlingMessage[1])).setInUse(false);
                 }
+
+                // changes variable to keep track of vehicle as it travels
                 if (handlingMessage[2].equals("ARRIVED")) {
                     availableVehicles.get(parseInt(handlingMessage[1])).setPosition(handlingMessage[4]);
                 }
+
+                // removes vehicle so it can't be used again
                 if (handlingMessage[2].equals("DESTROYED")) {
                     availableVehicles.remove(parseInt(handlingMessage[1]));
                     System.out.println("Vehicle has been destroyed");
                 }
                 break;
 
+                // changes vehicle variables for rerouting purposes
             case "PEOPLE_TRANSFERRED":
                 availableVehicles.get(parseInt(handlingMessage[4])).setStartDestination(handlingMessage[2]);
                 availableVehicles.get(parseInt(handlingMessage[4])).setFinalDestination(origin);
                 break;
 
+                // prints error
             case "ERROR":
                 System.out.println("ERROR");
                 break;
@@ -500,9 +415,11 @@ public class MyDisasterResponder extends DisasterResponder {
         }
     }
 
+    // setup method done before simulation starts
     @Override
     protected void setup() {
 
+        // calls the methods to build the graph from the config file name
         try {
             String filename = ConfigurationInfo.getMapFile(configFile);
             origin = ConfigurationInfo.getOrigin(configFile);
@@ -512,10 +429,12 @@ public class MyDisasterResponder extends DisasterResponder {
             e.printStackTrace();
         }
 
+        // adds the availableVehicles to the hashmap to be used later
         for (int i = 0; i < ConfigurationInfo.NUMBER_OF_VEHICLES; i++) {
             availableVehicles.putIfAbsent(i, new VehicleTracker(i));
         }
 
+        // starts the path finding thread method
         threadControl();
     }
 }
