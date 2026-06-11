@@ -9,6 +9,18 @@
 #include <algorithm>
 #include <memory>
 
+// Douglas Vanderland
+// vand0475
+
+// VERY IMPORTANT
+// FOR THIS TO WORK YOU HAVE TO INCLUDE THE PATH TO THE OUTPUT FILE OF THE LEXOR IN THE PARAMETERS
+// 2 PARAMETERS ARE NOT NEEDED THIS TIME LIKE THE LEXOR BUT IT DOES PRINT TO A FILE IF A PATH IS GIVEN AS SECOND PARAMETER
+// EXAMPLE: "C:\Users\Doug\Desktop\LexorOutput.txt" "C:\Users\Doug\Desktop\ParserOutput.txt"
+// FOUND IN Configuration -> Edit... -> Program Arguments
+// :)
+
+
+
 // an enum class of tokens. The delimiters and keywords have been split up so the SLR parser can tell the
 // difference between them
 enum class Tokens {
@@ -80,6 +92,7 @@ enum class NonTerminals {
 };
 
 // A struct of name Token to hold info about it
+// same as the lexor token
 struct Token {
     Tokens type;
     std::string lex;
@@ -170,7 +183,7 @@ std::vector<Token> readLexerFile(const std::string& lexorOutput) {
         }
         else if (typeString == "Unknown") {
             type=Tokens::UNKNOWN;
-            std::cout << "Unknown Token Parsed: lexeme = " + lex << "\n";
+            std::cout << "Unknown Token Parsed: lexeme = " + lex << std::endl;
             continue;
         }
 
@@ -259,6 +272,7 @@ std::vector<grammarRule> buildGrammar() {
 
     // defined addToGrammar used heavily below
     // parses on the left side, right side, and name because the buildGrammar returns vector of the grammarRule struct
+    // this is CFG from the report
     auto addToGrammar = [&](NonTerminals nonTerms, std::vector<tokOrNonT> symbol, std::string string) {
         grammarRules.push_back({
             nonTerms,
@@ -424,7 +438,7 @@ enum class ActionMoves {
 
 // a struct using the action class above
 // holds an action move (set to error by default)
-// hold an int, or where to go after performing an action (set to -1, or an error, by default)
+// hold an int, or where to go after performing an action (set to -1, or an invalid entry by default)
 // for example: SHIFT 14 means parser must shift to state 14
 struct Action {
     ActionMoves AM = ActionMoves::ERROR;
@@ -461,14 +475,15 @@ struct SLRBuilder {
         grammar = buildGrammar();
         grammarSize = static_cast<int>(grammar.size());
         grammar.push_back(grammarRule{NonTerminals::Program,{static_cast<tokOrNonT>(NonTerminals::Program)},"S' -> Program"});
-        calculateFirstToken();
-        calculateFollowToken();
+        calculateFirstSet();
+        calculateFollowSet();
         buildStates();
         buildTables();
     }
 
     // this method gets an ItemSet and expands it according to the CFG
     // this is a seperate method because it is used twice so avoiding duplicate code
+    // this is the closure operation from the report
     ItemSet ItemSetExpander (ItemSet itemSet) const {
         bool whileBool = true;
 
@@ -502,6 +517,7 @@ struct SLRBuilder {
 
     // method that takes an item and token or non-terminal and returns the next item according to CFG
     // also a seperate method because it's used more than once
+    // this is the go-to operation from the report
     ItemSet goToNextState(const ItemSet& itemSet, const tokOrNonT& tokOrNonTerm) const {
 
         ItemSet iSet;
@@ -518,8 +534,10 @@ struct SLRBuilder {
 
     // method that calculates the first tokens after every non-terminal is expanded according to CFG
     // this is the building block for the FIRST set in the FIRST FOLLOW sets for SLR parser
-    void calculateFirstToken() {
+    // this is first set from the report
+    void calculateFirstSet() {
 
+        //initialising all the non-terminals
         for (int i = 0; i < grammarSize; i++) {
             first [static_cast<NonTerminals>(i)] = {};
             epsilonDecider [static_cast<NonTerminals>(i)] = false;
@@ -530,6 +548,7 @@ struct SLRBuilder {
         while (whileBool) {
             whileBool = false;
 
+            // iterates over all productions in grammar
             for (int a = 0; a < grammarSize; a++) {
                 auto& grammarRuleAuto = grammar[a];
                 auto& tokenSetAuto = first[grammarRuleAuto.leftHS];
@@ -541,27 +560,31 @@ struct SLRBuilder {
                     } continue;
                 }
 
-                for (auto& sym:grammarRuleAuto.RightHS) {
-                    if (auto* t = std::get_if<Tokens>(&sym)) {
+                // goes through rhs symbol until it cant do the epsilon decider
+                for (auto& tokOrNonTSymbol:grammarRuleAuto.RightHS) {
+                    if (auto* t = std::get_if<Tokens>(&tokOrNonTSymbol)) {
                         if(tokenSetAuto.insert(*t).second){
                         whileBool = true;
                     }
                         break;
 
                     }
-                    for (auto t:first[std::get<NonTerminals>(sym)]) {
+
+                    // adds current rhs non-terminal from tokenSetAuto to first set
+                    for (auto t:first[std::get<NonTerminals>(tokOrNonTSymbol)]) {
                         if(tokenSetAuto.insert(t).second) {
                             whileBool = true;
                         }
                     }
 
-                    if (!epsilonDecider[std::get<NonTerminals>(sym)]) {
+                    if (!epsilonDecider[std::get<NonTerminals>(tokOrNonTSymbol)]) {
                         break;
                     }
                 }
 
                 bool allNull=true;
 
+                // checks if all symbols on rhs can do the pass the epsilon decider bool
                 for (auto& tONTSymbol:grammarRuleAuto.RightHS) {
                     auto* nonTermAuto = std::get_if<NonTerminals>(&tONTSymbol);
 
@@ -578,9 +601,10 @@ struct SLRBuilder {
         }
     }
 
-    // method that calculates the tokens that appear right after every non-terminal
+    // method that calculates the tokens that might appear right after every non-terminal
     // this is the building block for the FOLLOW set in the FIRST FOLLOW sets for SLR parser
-    void calculateFollowToken() {
+    // this is the follow set from the report
+    void calculateFollowSet() {
 
         follow [NonTerminals::Program].insert(Tokens::ENDOFFILE);
         bool whileBool = true;
@@ -588,9 +612,12 @@ struct SLRBuilder {
         while (whileBool) {
             whileBool = false;
 
+            // loop over all productions to see what follows every non-terminal
             for (int a = 0; a < grammarSize; a++) {
                 auto& grammarRuleAuto = grammar[a];
 
+
+                // loops over production rule looking for non-terminals
                 for (int i = 0; i < static_cast<int>(grammarRuleAuto.RightHS.size()); i++) {
                     auto* nonTerm = std::get_if<NonTerminals>(&grammarRuleAuto.RightHS[i]);
 
@@ -598,6 +625,7 @@ struct SLRBuilder {
                         continue;
                     }
 
+                   // scanning everything to the right of position i from previous for loop
                     for (int j = i + 1; j < static_cast<int>(grammarRuleAuto.RightHS.size()); j++) {
                         if (auto* token = std::get_if<Tokens>(&grammarRuleAuto.RightHS[j])) {
                             if(follow[*nonTerm].insert(*token).second) {
@@ -606,6 +634,7 @@ struct SLRBuilder {
                             break;
                         }
 
+                        // merge first of the next non-terminal into follow set
                         for (auto token : first[std::get<NonTerminals>(grammarRuleAuto.RightHS[j])]) {
                             if(follow[*nonTerm].insert(token).second)
                                 whileBool = true;
@@ -618,6 +647,7 @@ struct SLRBuilder {
 
                     bool nullBool = true;
 
+                    // checking if everything can do epsilon decider
                     for (int j = i + 1; j < static_cast<int>(grammarRuleAuto.RightHS.size()); j++) {
                         auto* nonTermAuto = std::get_if<NonTerminals>(&grammarRuleAuto.RightHS[j]);
                         if (!nonTermAuto || !epsilonDecider[*nonTermAuto]) {
@@ -646,9 +676,11 @@ struct SLRBuilder {
         states.push_back(state0);
         stateNumberMap[state0] = 0;
 
+        // goes over all stats
         for (int i = 0; i < static_cast<int>(states.size()); i++) {
             std::set<tokOrNonT> tokOrNonTSet;
 
+            // get all symbol after turing head in the state from previous for loop
             for (auto& item:states[i]) {
                 auto& RHS = grammar[item.grammarRuleNumber].RightHS;
 
@@ -657,6 +689,7 @@ struct SLRBuilder {
                 }
             }
 
+            // find next state for each symbol
             for (auto& tokOrNonTAuto:tokOrNonTSet) {
                 ItemSet itemSet = goToNextState(states[i],tokOrNonTAuto);
 
@@ -673,6 +706,7 @@ struct SLRBuilder {
     }
 
     // method that fills in action and goto tables by calling goToNextState recursively
+    // this is the action table and go-to table from the report
     void buildTables() {
 
         int size = static_cast<int>(states.size());
@@ -694,9 +728,11 @@ struct SLRBuilder {
                     }
                     int target = stateNumberMap.at(itemSet);
 
+                    // adding to action table
                     if (auto* t = std::get_if<Tokens>(&variantSymbol)) {
                         table.actionTable[a][*t] = {ActionMoves::SHIFT, target};
                     }
+                    // adding to go-to table
                     else {
                         table.goToTable[a][std::get<NonTerminals>(variantSymbol)] = target;
                     }
@@ -728,8 +764,8 @@ struct Node {
 
     // constructor that creates nodes based on the parameters
     // s2 is = "" because it is an optional value
-    // terminal takes both (Keyword, while)
-    // non-terminal just passes one (ArgumentList)
+    // terminal takes both, example(Keyword, while)
+    // non-terminal just passes one, example(ArgumentList)
     Node(const std::string &s, const std::string &s2 = "") {
         label = s;
         value = s2;
@@ -750,7 +786,7 @@ struct Node {
         }
 
         // new line and tab indent to better view parse tree
-        osStream << "\n";
+        osStream << std::endl;
         std::string prePrintPlus = prePrint + "    ";
 
         // calls itself over and over until i is == to size of nodeVector
@@ -775,18 +811,18 @@ std::shared_ptr<Node> parseFunction(const ParseTable& parseTable, const std::vec
 
         // error detection for inputs that don't fit the rules
         if (parseTable.actionTable[stackInt].find(ToK) == parseTable.actionTable[stackInt].end()) {
-            std::cout << "Bad Input: lexeme = " << tokens[positionInt].lex << " row = " << tokens[positionInt].row << " column = " << tokens[positionInt].column  << "\n";
+            std::cout << "Bad Input: lexeme = " << tokens[positionInt].lex << " row = " << tokens[positionInt].row << " column = " << tokens[positionInt].column  << std::endl;
             return nullptr;
         }
 
         auto& anAuto= parseTable.actionTable[stackInt].find(ToK)->second;
 
-        // Shift action
+        // Shift action from the report
         if (anAuto.AM == ActionMoves::SHIFT) {
             nodeStack.push(std::make_shared<Node>(tokenName(ToK), tokens[positionInt].lex));
             stateStack.push(anAuto.value); positionInt++;
 
-            // reduce action
+            // reduce action from the report
         } else if (anAuto.AM == ActionMoves::REDUCE) {
 
             auto& anotherAuto=grammarRuleVector[anAuto.value];
@@ -803,12 +839,14 @@ std::shared_ptr<Node> parseFunction(const ParseTable& parseTable, const std::vec
 
             node -> nodeVector = std::move(nodeVector);
             nodeStack.push(node);
-            auto gi=parseTable.goToTable[stateStack.top()].find(anotherAuto.leftHS);
+            auto gi = parseTable.goToTable[stateStack.top()].find(anotherAuto.leftHS);
 
             if (gi == parseTable.goToTable [stateStack.top()].end()) {
-                std::cout << "Missing goto for " + nonTerminalName(anotherAuto.leftHS) << "\n";
+                std::cout << "Missing goto for " + nonTerminalName(anotherAuto.leftHS) << std::endl;
             }
             stateStack.push (gi->second);
+
+            // Accept state from the report
         } else {
             auto programStart = std::make_shared<Node>("Program");
             programStart->nodeVector.push_back(nodeStack.top());
@@ -818,6 +856,8 @@ std::shared_ptr<Node> parseFunction(const ParseTable& parseTable, const std::vec
 }
  
 int main(int argc, char *argv[]) {
+
+    std::ofstream outputFile(argv[2]);
 
     // SLRBuilder that creates all rules and tables
     SLRBuilder builder;
@@ -829,7 +869,9 @@ int main(int argc, char *argv[]) {
     auto tree= parseFunction(builder.table, builder.grammar, tokens);
 
     // prints created tree with print function
+    // prints to both console and output file
     tree -> print(std::cout);
+    tree -> print(outputFile);
 
     return 0;
 }
