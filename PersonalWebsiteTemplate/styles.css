@@ -177,12 +177,30 @@ h1 {
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  position: relative;
 }
 
 .card h3,
 .job h3 {
   color: var(--primary-dark);
   margin-bottom: 10px;
+}
+
+.company-logo {
+  position: absolute;
+  top: 75px;
+  right: 25px;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: #dfeaf7;
+  color: var(--primary-dark);
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
 }
 
 .list {
@@ -209,6 +227,11 @@ h1 {
   height: auto;
   border-radius: 15%;
   margin-top: 20px;
+}
+
+.tab {
+    display: inline-block;
+    margin-left: 40px;
 }
 
 @media (max-width: 700px) {
